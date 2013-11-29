@@ -27,14 +27,22 @@ import cs.TargetState;
 import cs.util.Tools;
 
 /**
- * Bleh.
+ * Calculates a given data point for tree storage.
  * 
- * @author Chase
+ * @author Robert Maupin (Chase)
  */
 public class MoveFormula {
 	public static final double[] weights = new double[] { 0.5, 10, 9, 8.5, 5 };
 	private final double[] point;
 	public double guessfactor;
+	
+	/**
+	 * Provides a formula that can be used as a seed.
+	 */
+	public MoveFormula() {
+		point = new double[] { 1.5, 0.5, 0.5, 0.5, 0.5 };
+		guessfactor = 0;
+	}
 	
 	public MoveFormula(MoveWave wave, TargetState state) {
 		final double bulletFlightTime = state.targetDistance / wave.speed;

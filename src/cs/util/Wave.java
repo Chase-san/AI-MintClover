@@ -76,6 +76,15 @@ public class Wave extends Vector {
 	public boolean isCompleted() {
 		return completed;
 	}
+	
+	/**
+	 * Determines if this wave has started intersecting the enemy.
+	 * 
+	 * @return true if intersecting, false otherwise.
+	 */
+	public boolean isIntersected() {
+		return intersected;
+	}
 
 	/**
 	 * Updates this wave. Given the time and the targets position at the given
@@ -105,9 +114,11 @@ public class Wave extends Vector {
 				{ target.x - 18, target.y - 18 }, { target.x + 18, target.y - 18 },
 				{ target.x - 18, target.y + 18 }, { target.x + 18, target.y + 18 } }) {
 			final double dist = distanceSq(pnt[0], pnt[1]);
-			if(dist < radius2 * radius2 && dist > radius * radius)
+			if(dist < radius2 * radius2 && dist > radius * radius) {
 				expandMinMaxFactors(pnt);
+			}
 		}
 		if(!intersects && intersected) completed = true;
 	}
+	
 }

@@ -35,6 +35,9 @@ public class MoveWave extends Wave {
 	private boolean sI = false;
 	private boolean sC = false;
 	
+	//TODO remember why I made these state methods
+	
+	/** Backs up the current state. */
 	public void storeState() {
 		sMnF = minFactor;
 		sMxF = maxFactor;
@@ -42,6 +45,7 @@ public class MoveWave extends Wave {
 		sC = completed;
 	}
 	
+	/** Resets the current state. */
 	public void resetState() {
 		minFactor = 100;
 		maxFactor = -100;
@@ -49,6 +53,7 @@ public class MoveWave extends Wave {
 		completed = false;
 	}
 	
+	/** Restores the previously backed up state */
 	public void restoreState() {
 		minFactor = sMnF;
 		maxFactor = sMxF;

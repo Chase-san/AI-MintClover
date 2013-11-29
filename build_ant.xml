@@ -16,7 +16,7 @@
 	<description>SkunkWorks Ant Build Script</description>
 	<property name="robot.classpath" value="cs" />
 	<property name="robot.name" value="Mint" />
-	<property name="obfuscate" value="true" />
+	<property name="obfuscate" value="false" />
 	<property name="addsource" value="false" />
 	
 	<property name="jardir" value="out" />
@@ -28,7 +28,7 @@
 	
 	<!-- Load version number from robot properties file -->
 	<property file="${srcdir}/${robot.classpath}/${robot.name}.properties" />
-	<property name="robocode.jar" location="C:/robocode/libs/robocode.jar" />
+	<property name="robocode.jar" location="C:/Games/robocode/libs/robocode.jar" />
 	
 	<!-- Things to exclude from your obfuscation -->
 	<patternset id="obfuscate.exclude">

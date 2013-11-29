@@ -22,6 +22,7 @@
  */
 package cs.move.driver;
 
+import robocode.Rules;
 import robocode.util.Utils;
 import cs.util.Tools;
 import cs.util.Vector;
@@ -77,12 +78,17 @@ public class NeneDriver implements Driver {
 
 	@Override
 	public void drive(Vector position, Vector center, double heading, double velocity, int orbitDirection) {
+		if(position == null || center == null)
+			return; //TODO debug this
+		
 		/* Better safe then very very sorry */
 		if(orbitDirection == 0)
 			orbitDirection = 1;
 
+		maxVelocity = Rules.MAX_VELOCITY;
+		
 		double angleToRobot = center.angleTo(position);
-
+		
 		/*
 		 * if the orbit direction is clockwise/counter, we want to try and
 		 * point our robot in that direction, which is why we multiply by it
