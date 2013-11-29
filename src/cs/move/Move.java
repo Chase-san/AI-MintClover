@@ -270,17 +270,21 @@ public class Move {
 	 * Perform movement.
 	 */
 	private void doMovement() {
-		// for now, let's just do surfing movement
-		MoveWave wave = getBestWave();
-
-		if (wave == null) {
-			doWavelessMovement();
-			return;
-		}
-
 		if (driver == null) {
 			driver = new NeneDriver();
 			driver.setBattlefieldSize(State.battlefieldWidth, State.battlefieldHeight);
+		}
+		
+		if(lastState == null || lastState.targetPosition == null) {
+			//nothing we can do here.
+			return;
+		}
+		
+		MoveWave wave = getBestWave();
+		
+		if (wave == null) {
+			doWavelessMovement();
+			return;
 		}
 
 		// direction and risk
