@@ -115,8 +115,11 @@ public class Wave extends Vector {
 			expandMinMaxFactors(pnts);
 			intersects = intersected = true;
 		}
-		for (final double[] pnt : new double[][] { { target.x - 18, target.y - 18 }, { target.x + 18, target.y - 18 },
-				{ target.x - 18, target.y + 18 }, { target.x + 18, target.y + 18 } }) {
+		for (final double[] pnt : new double[][] {
+				{ target.x - 18, target.y - 18 },
+				{ target.x + 18, target.y - 18 },
+				{ target.x - 18, target.y + 18 },
+				{ target.x + 18, target.y + 18 } }) {
 			final double dist = distanceSq(pnt[0], pnt[1]);
 			if (dist < radius2 * radius2 && dist > radius * radius) {
 				expandMinMaxFactors(pnt);
