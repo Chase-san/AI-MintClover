@@ -22,7 +22,6 @@
  */
 package cs.move;
 
-import cs.State;
 import cs.TargetState;
 import cs.util.Tools;
 
@@ -32,7 +31,7 @@ import cs.util.Tools;
  * @author Robert Maupin (Chase)
  */
 public class MoveFormula {
-	public static final double[] weights = new double[] { 0.5, 10, 9, 8.5, 5 };
+	public static final double[] weights = new double[] { 6, 1, 3.2, 4, 2, 1, 2.2 };
 	private final double[] point;
 	public double guessfactor;
 	
@@ -40,22 +39,19 @@ public class MoveFormula {
 	 * Provides a formula that can be used as a seed.
 	 */
 	public MoveFormula() {
-		point = new double[] { 1.5, 0.5, 0.5, 0.5, 0.5 };
+		point = new double[] { 0.5, 0.5, 0, 0.5, 0.5, 0.6, 1 };
 		guessfactor = 0;
 	}
 	
 	public MoveFormula(MoveWave wave, TargetState state) {
-		final double bulletFlightTime = state.targetDistance / wave.speed;
 		point = new double[] {
-			Math.min(3, wave.power) / 3,
-			Math.min(91, bulletFlightTime) / 91,
-			Math.abs(state.lateralVelocity) / 8,
-			Math.min(1.5,Tools.orbitalWallDistance(wave, state.position,
-					wave.power, state.orbitDirection, State.battlefield)) / 1.5,
-			Math.min(1.5,Tools.orbitalWallDistance(wave, state.position,
-					wave.power, -state.orbitDirection, State.battlefield)) / 1.5,
-//			Math.min(1.0,state.targetTimeSinceVelocityChange / bulletFlightTime) / 1.0,
-//			Math.min(128, state.targetDistanceLast16) / 128,
+			Math.abs(state.lateralVelocity) / 8.0,
+			(state.advancingVelocity + 8.0) / 16.0,
+			state.distanceLast10/80.0,
+			Tools.limit(0, Math.abs(state.forwardOrbitalAngleToWall)/Math.PI*0.5, 1),
+			Tools.limit(0, Math.abs(state.forwardOrbitalAngleToWall)/Math.PI, 1),
+			Math.min(state.targetDistance/800.0,1),
+			Math.min(state.timeSinceOrbitalDirectionChange/400.0,1)
 		};
 	}
 
