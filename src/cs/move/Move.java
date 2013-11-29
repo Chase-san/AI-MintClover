@@ -42,20 +42,20 @@ import cs.util.Vector;
 
 /**
  * The movement known as Mint.
+ * 
  * @author Chase
  */
 public class Move {
 	private static final KdTree.WeightedSqrEuclid<MoveFormula> tree;
 	static {
-		tree = new KdTree.WeightedSqrEuclid<MoveFormula>(
-				MoveFormula.weights.length, 0);
+		tree = new KdTree.WeightedSqrEuclid<MoveFormula>(MoveFormula.weights.length, 0);
 		tree.setWeights(MoveFormula.weights);
-		//seed the tree (just one, a basic avoid head on targeting)
-		
+		// seed the tree (just one, a basic avoid head on targeting)
+
 		MoveFormula tmp = new MoveFormula();
 		tree.addPoint(tmp.getArray(), tmp);
 	}
-	
+
 	private final Mint bot;
 	private Driver driver;
 	private TargetState state;
@@ -68,6 +68,61 @@ public class Move {
 		bot = cntr;
 	}
 
+	private double calculateWaveRisk(final MoveWave wave) {
+		// check risk
+		double centerGF = (wave.minFactor + wave.maxFactor) / 2.0;
+		double waveRisk = 0;
+		List<Entry<MoveFormula>> list = tree.nearestNeighbor(wave.formula.getArray(), 32, false);
+		for (final Entry<MoveFormula> e : list) {
+			double subRisk = 1.0 / (1.0 + Math.abs(e.value.guessfactor - centerGF));
+			double weight = 1.0 / (1.0 + e.distance);
+			waveRisk += subRisk * weight;
+		}
+		waveRisk /= list.size();
+		return waveRisk;
+	}
+
+	private double calculateDirectionRisk(final MoveWave wave, final int orbitDirection) {
+		Simulate sim = new Simulate();
+		sim.position.setLocation(state.position);
+		sim.heading = state.bodyHeading;
+		sim.velocity = state.velocity;
+		sim.direction = orbitDirection;
+
+		double startDistance = wave.distance(sim.position);
+		double predictedDistance = 0;
+		int intersectionTime = 0;
+
+		double risk = 0;
+
+		wave.storeState();
+		wave.resetState();
+		for (int timeOffset = 0; timeOffset < 110; ++timeOffset) {
+			wave.update(state.time + timeOffset, sim.position);
+			if (wave.isCompleted()) {
+				risk += calculateWaveRisk(wave);
+				break;
+			} else if (wave.isIntersected()) {
+				predictedDistance += wave.distance(sim.position);
+				intersectionTime++;
+			}
+			// Update simulation
+			driver.drive(sim.position, wave, sim.heading, sim.velocity, orbitDirection);
+			sim.angleToTurn = driver.getAngleToTurn();
+			sim.maxVelocity = driver.getMaxVelocity();
+			sim.direction = orbitDirection;
+			sim.step();
+		}
+
+		wave.restoreState();
+
+		predictedDistance /= intersectionTime;
+		double distanceRisk = startDistance / predictedDistance;
+		distanceRisk *= distanceRisk;
+
+		return risk * distanceRisk;
+	}
+
 	/**
 	 * Detect enemy waves.
 	 */
@@ -75,12 +130,10 @@ public class Move {
 		double energyDelta = lastState.targetEnergy - state.targetEnergy;
 		if (energyDelta > 0 && energyDelta <= 3.0) {
 			MoveWave wave = new MoveWave();
-
 			wave.setLocation(lastState.targetPosition);
 			wave.power = energyDelta;
 			wave.speed = Rules.getBulletSpeed(wave.power);
-			wave.escapeAngle = Math.asin(8.0 / wave.speed)
-					* state.orbitDirection;
+			wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.orbitDirection;
 			wave.directAngle = lastLastState.targetAngle + Math.PI;
 			wave.fireTime = state.time - 1;
 			wave.formula = new MoveFormula(wave, lastLastState);
@@ -93,97 +146,53 @@ public class Move {
 	 * Perform movement.
 	 */
 	private void doMovement() {
-		//for now, let's just do surfing movement
+		// for now, let's just do surfing movement
 		MoveWave wave = getBestWave();
-		if(wave != null) {
-			if(driver == null) {
-				driver = new NeneDriver();
-				driver.setBattlefieldSize(State.battlefieldWidth, State.battlefieldHeight);
-			}
-			//direction and risk
+		
+		///////////////////////////
+		//XXX TEMPORARY
+		if(wave == null) {
+			if(lastLastState == null
+			|| lastState == null
+			|| lastState.targetPosition == null
+			|| state == null
+			|| state.targetPosition == null)
+				return;
 			
-			double fRisk = calcRisk(wave,state.orbitDirection);
-			double rRisk = calcRisk(wave,-state.orbitDirection);
-			
-			int targetOrbitDirection = state.orbitDirection;
-			if(fRisk > rRisk) {
-				targetOrbitDirection = -state.orbitDirection;
-			}
-			
-			driver.drive(state.position, lastState.targetPosition,
-					state.bodyHeading, state.velocity, targetOrbitDirection);
-			
-			bot.setMaxVelocity(driver.getMaxVelocity());
-			bot.setTurnBody(driver.getAngleToTurn());
-			bot.setMove(100 * driver.getDirection());
-			
-			updateNextPosition();
+			wave = new MoveWave();
+			wave.setLocation(lastState.targetPosition);
+			wave.power = 2;
+			wave.speed = Rules.getBulletSpeed(wave.power);
+			wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.orbitDirection;
+			wave.directAngle = lastLastState.targetAngle + Math.PI;
+			wave.fireTime = state.time - 1;
+			wave.formula = new MoveFormula(wave, lastLastState);
 		}
-	}
-	
-	private double calcRisk(final MoveWave wave, final int orbitDirection) {
-		Simulate sim = new Simulate();
-		sim.position.setLocation(state.position);
-		sim.heading = state.bodyHeading;
-		sim.velocity = state.velocity;
-		sim.direction = orbitDirection;
+		//XXX TEMPORARY
+		///////////////////////////
 		
-		double startDistance = wave.distance(sim.position);
-		double predictedDistance = 0;
-		int intersectionTime = 0;
-		
-		double risk = 0;
-		
-		wave.storeState();
-		wave.resetState();
-		for(int timeOffset = 0; timeOffset < 110; ++timeOffset) {
-			wave.update(state.time + timeOffset, sim.position);
-			if(wave.isCompleted()) {
-				//check risk
-				double fC = (wave.minFactor + wave.maxFactor) / 2.0;
-				double waveRisk = 0;
-				List<Entry<MoveFormula>> list = tree.nearestNeighbor(wave.formula.getArray(), 64, false);
-				for(final Entry<MoveFormula> e : list) {
-					double subRisk = 1.0 / (1.0 + Math.abs(e.value.guessfactor - fC));
-					double weight = 1.0 / (1.0 + e.distance);
-					waveRisk += subRisk * weight;
-				}
-				waveRisk /= list.size();
-				risk += waveRisk;
-				break;
-			} else if(wave.isIntersected()) {
-				predictedDistance += wave.distance(sim.position);
-				intersectionTime++;
-			}
-			//Update simulation
-			driver.drive(sim.position, wave, sim.heading, sim.velocity, orbitDirection);
-			sim.angleToTurn = driver.getAngleToTurn();
-			sim.maxVelocity = driver.getMaxVelocity();
-			sim.direction = orbitDirection;
-			sim.step();
+		if (driver == null) {
+			driver = new NeneDriver();
+			driver.setBattlefieldSize(State.battlefieldWidth, State.battlefieldHeight);
 		}
 		
-		wave.restoreState();
-		
-		predictedDistance /= intersectionTime;
-		double distanceRisk = startDistance / predictedDistance;
-		distanceRisk *= distanceRisk;
-		
-		return risk * distanceRisk;
-	}
-	
-	/**
-	 * Simulates movement to determine the next position.
-	 */
-	private void updateNextPosition() {
-		Simulate sim = new Simulate();
-		sim.position = state.position.clone();
-		sim.angleToTurn = driver.getAngleToTurn();
-		sim.maxVelocity = driver.getMaxVelocity();
-		sim.direction = driver.getDirection();
-		sim.step();
-		
-		nextPosition = sim.position;
+		// direction and risk
+		double fRisk = calculateDirectionRisk(wave, state.orbitDirection);
+		double rRisk = calculateDirectionRisk(wave, -state.orbitDirection);
+
+		int targetOrbitDirection = state.orbitDirection;
+		if (fRisk > rRisk) {
+			targetOrbitDirection = -state.orbitDirection;
+		}
+
+		driver.drive(state.position, lastState.targetPosition, state.bodyHeading, state.velocity,
+				targetOrbitDirection);
+
+		bot.setMaxVelocity(driver.getMaxVelocity());
+		bot.setTurnBody(driver.getAngleToTurn());
+		bot.setMove(100 * driver.getDirection());
+
+		updateNextPosition();
 	}
 
 	/**
@@ -193,7 +202,7 @@ public class Move {
 	 *            The current calculated system state.
 	 */
 	public void execute(final TargetState state) {
-		
+
 		// check to see if the enemy fired
 		lastLastState = lastState;
 		lastState = this.state;
@@ -209,8 +218,8 @@ public class Move {
 	}
 
 	/**
-	 * Determine the best wave to surf.
-	 * TODO Make higher power bullets a higher risk.
+	 * Determine the best wave to surf. TODO Make higher power bullets a higher
+	 * risk.
 	 */
 	private MoveWave getBestWave() {
 		MoveWave wave = null;
@@ -288,6 +297,20 @@ public class Move {
 	}
 
 	/**
+	 * Simulates movement to determine the next position.
+	 */
+	private void updateNextPosition() {
+		Simulate sim = new Simulate();
+		sim.position = state.position.clone();
+		sim.angleToTurn = driver.getAngleToTurn();
+		sim.maxVelocity = driver.getMaxVelocity();
+		sim.direction = driver.getDirection();
+		sim.step();
+
+		nextPosition = sim.position;
+	}
+
+	/**
 	 * Update waves, remove them if needed.
 	 */
 	private void updateWaves() {
@@ -300,8 +323,7 @@ public class Move {
 
 			double r = wave.getRadius(state.time);
 
-			bot.g.draw(new java.awt.geom.Ellipse2D.Double(wave.x - r, wave.y
-					- r, r * 2, r * 2));
+			bot.g.draw(new java.awt.geom.Ellipse2D.Double(wave.x - r, wave.y - r, r * 2, r * 2));
 
 			wave.update(state.time, state.position);
 
