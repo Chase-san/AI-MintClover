@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 import java.io.PrintStream;
+
 import robocode.BattleEndedEvent;
 import robocode.Bullet;
 import robocode.BulletHitBulletEvent;

@@ -115,6 +115,7 @@ public class Wave extends Vector {
 			expandMinMaxFactors(pnts);
 			intersects = intersected = true;
 		}
+		//corners
 		for (final double[] pnt : new double[][] {
 				{ target.x - 18, target.y - 18 },
 				{ target.x + 18, target.y - 18 },
