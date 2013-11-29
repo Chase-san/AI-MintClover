@@ -49,6 +49,7 @@ public class TargetState extends State {
 	public long targetTimeSinceVelocityChange;
 	public int targetOrbitDirection;
 	
+	public double advancingVelocity;
 	public double lateralVelocity;
 	public int orbitDirection;
 	
@@ -78,6 +79,7 @@ public class TargetState extends State {
 		targetPosition = position.clone().project(targetAngle, targetDistance = e.getDistance());
 		
 		//robot data
+		advancingVelocity = velocity * Math.cos(e.getBearingRadians());
 		lateralVelocity = velocity * Math.sin(e.getBearingRadians());
 		orbitDirection = lateralVelocity > 0 ? CLOCKWISE : COUNTERCLOCKWISE;
 		
