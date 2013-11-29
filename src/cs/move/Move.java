@@ -84,7 +84,7 @@ public class Move {
 	 * Perform movement.
 	 */
 	private void doMovement() {
-
+		
 	}
 
 	/**

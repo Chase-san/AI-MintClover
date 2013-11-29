@@ -37,9 +37,9 @@ import cs.move.Move;
 import cs.util.Rectangle;
 
 /**
+ * The main robot control class.
  * 
  * @author Robert Maupin (Chase)
- *
  */
 public final class Mint extends RobotBase {
 	public TargetState lastState;
@@ -171,7 +171,7 @@ public final class Mint extends RobotBase {
 	 */
 	@Override
 	public void onTurnEnded(final Event e) {
-		radar.update(state);
+		radar.execute(state);
 		if (!radar.isScanning()) {
 			if (!doMove) {
 				gun.setNextPosition(state.position);

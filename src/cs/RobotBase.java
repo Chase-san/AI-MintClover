@@ -55,7 +55,7 @@ import robocode.robotinterfaces.peer.IBasicRobotPeer;
  * The normal AdvancedRobot class has years of clutter within it.
  * This class has no robot specific code in it, meaning you can safely ignore it.
  * 
- * @author Chase
+ * @author Robert Maupin (Chase)
  * 
  */
 public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvancedEvents {
