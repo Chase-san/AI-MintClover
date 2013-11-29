@@ -82,7 +82,7 @@ public class Move {
 		// check risk
 		double centerGF = (wave.minFactor + wave.maxFactor) / 2.0;
 		double waveRisk = 0;
-		List<Entry<MoveFormula>> list = tree.nearestNeighbor(wave.formula.getArray(), 32, false);
+		List<Entry<MoveFormula>> list = tree.nearestNeighbor(wave.formula.getArray(), 64, false);
 		for (final Entry<MoveFormula> e : list) {
 			double gf = e.value.guessfactor;
 			double subRisk = 0.2 / (1.0 + Math.abs(gf - centerGF));
