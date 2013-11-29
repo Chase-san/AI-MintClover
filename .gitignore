@@ -8,4 +8,5 @@ bin/
 out/
 .classpath
 .settings/
+src/test/
 *log.xml
