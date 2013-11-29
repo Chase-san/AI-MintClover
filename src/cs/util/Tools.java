@@ -295,6 +295,15 @@ public class Tools {
 			return 1;
 		return -1;
 	}
+	
+	/**
+	 * Returns the square of this value.
+	 * @param value The value to square.
+	 * @return value * value
+	 */
+	public static double sqr(final double value) {
+		return value * value;
+	}
 
 	private Tools() {
 	}
