@@ -22,11 +22,14 @@
  */
 package cs;
 
+import java.util.ArrayDeque;
+
 import robocode.BulletHitEvent;
 import robocode.HitByBulletEvent;
 import robocode.Rules;
 import robocode.ScannedRobotEvent;
 import robocode.StatusEvent;
+import cs.util.Tools;
 import cs.util.Vector;
 
 /**
@@ -35,6 +38,7 @@ import cs.util.Vector;
  * @author Robert Maupin (Chase)
  */
 public class TargetState extends State {
+	public ArrayDeque<Vector> pastTargetPosition = new ArrayDeque<Vector>();
 	public Vector targetPosition = null;
 	public double targetAngle;
 	public double targetDistance;
@@ -49,6 +53,9 @@ public class TargetState extends State {
 	public long targetTimeSinceVelocityChange;
 	public int targetOrbitDirection;
 	
+	public long timeSinceOrbitalDirectionChange;
+	public double forwardOrbitalAngleToWall;
+	public double reverseOrbitalAngleToWall;
 	public double advancingVelocity;
 	public double lateralVelocity;
 	public int orbitDirection;
@@ -83,10 +90,22 @@ public class TargetState extends State {
 		lateralVelocity = velocity * Math.sin(e.getBearingRadians());
 		orbitDirection = lateralVelocity > 0 ? CLOCKWISE : COUNTERCLOCKWISE;
 		
+		forwardOrbitalAngleToWall = Tools.getWallDistance(targetPosition,
+				State.battlefieldWidth, State.battlefieldHeight,
+				targetDistance, targetAngle, orbitDirection);
+		reverseOrbitalAngleToWall = Tools.getWallDistance(targetPosition,
+				State.battlefieldWidth, State.battlefieldHeight,
+				targetDistance, targetAngle, -orbitDirection);
+		
 		pastTargetPosition.addFirst(targetPosition);
 		if(lastState != null) {
 			targetHeadingDelta = targetHeading - lastState.targetHeading;
 			targetVelocityDelta = targetVelocity - lastState.targetVelocity;
+			
+			++timeSinceOrbitalDirectionChange;
+			if(lastState.orbitDirection != orbitDirection) {
+				timeSinceOrbitalDirectionChange = 0;
+			}
 			
 			++targetTimeSinceVelocityChange;
 			if(Math.abs(targetLateralVelocity - lastState.targetLateralVelocity) > 0.5) {

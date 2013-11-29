@@ -23,6 +23,7 @@
 package cs;
 
 import java.util.ArrayDeque;
+
 import robocode.RobotStatus;
 import robocode.StatusEvent;
 import cs.util.Rectangle;
@@ -42,7 +43,8 @@ public abstract class State {
 	public static double coolingRate;
 	public static int battlefieldHeight;
 	public static int battlefieldWidth;
-	public static ArrayDeque<Vector> pastTargetPosition = new ArrayDeque<Vector>();
+	
+	public ArrayDeque<Vector> pastPosition = new ArrayDeque<Vector>();
 	public final Vector position;
 	public final double bodyHeading;
 	public final double bodyTurnRemaining;
@@ -56,14 +58,13 @@ public abstract class State {
 	public final int others;
 	public final int roundNum;
 	
+	public double distanceLast10;
 	public double bodyHeadingDelta;
 	public double velocityDelta;
 
 	public State(final StatusEvent e, final State lastState) {
 		final RobotStatus status = e.getStatus();
 		time = status.getTime();
-		if(time == 0)
-			State.pastTargetPosition.clear();
 		roundNum = status.getRoundNum();
 		position = new Vector(status.getX(), status.getY());
 		bodyHeading = status.getHeadingRadians();
@@ -76,9 +77,17 @@ public abstract class State {
 		gunTurnRemaining = status.getGunTurnRemainingRadians();
 		bodyTurnRemaining = status.getTurnRemainingRadians();
 		others = status.getOthers();
+		
+		pastPosition.addFirst(position);
 		if(lastState != null) {
 			bodyHeadingDelta = bodyHeading - lastState.bodyHeading;
 			velocityDelta = velocity - lastState.velocity;
+			
+			if(pastPosition.size() < 10) {
+				distanceLast10 = position.distance(pastPosition.getLast());
+			} else {
+				distanceLast10 = position.distance(pastPosition.removeLast());
+			}
 		}
 	}
 }
