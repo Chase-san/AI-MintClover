@@ -38,6 +38,7 @@ import cs.util.Vector;
 
 /**
  * The gun known as Clover.
+ * 
  * @author Robert Maupin (Chase)
  */
 public class Gun {
@@ -50,7 +51,7 @@ public class Gun {
 	private final Mint bot;
 	private TargetState state;
 	private Vector next;
-	
+
 	public static Double power = null;
 
 	public Gun(final Mint cntr) {
@@ -78,7 +79,6 @@ public class Gun {
 		wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.targetOrbitDirection;
 		return wave;
 	}
-	
 
 	/**
 	 * Calculates the best aim for our gun.
@@ -86,8 +86,9 @@ public class Gun {
 	 * @return the best angle to fire at
 	 */
 	private double getBestAngleOffset(final GunWave wave) {
-		if(state.gunHeat / State.coolingRate > 4) return 0;
-		
+		if (state.gunHeat / State.coolingRate > 4)
+			return 0;
+
 		int size = (int) Tools.limit(1, tree.size() / 14, 80);
 		final List<Entry<GunFormula>> list = tree.nearestNeighbor(wave.data.getArray(), size, false);
 		size = list.size();
@@ -96,18 +97,19 @@ public class Gun {
 		final double bandwidth = 36 / wave.distance(state.targetPosition);
 		final double[] angles = new double[size];
 		final double[] weights = new double[size];
-		for(int i = 0; i < size; ++i) {
+		for (int i = 0; i < size; ++i) {
 			angles[i] = Utils.normalRelativeAngle(list.get(i).value.guessfactor * wave.escapeAngle);
 			weights[i] = 1.0 / Math.sqrt(list.get(i).distance);
 		}
-		for(int a = 0; a < size; ++a) {
+		for (int a = 0; a < size; ++a) {
 			double density = 0;
-			for(int b = 0; b < size; ++b) {
-				if(a == b) continue;
+			for (int b = 0; b < size; ++b) {
+				if (a == b)
+					continue;
 				final double ux = (angles[a] - angles[b]) / bandwidth;
 				density += Math.exp(-0.5 * ux * ux) * weights[b];
 			}
-			if(density > bestDensity) {
+			if (density > bestDensity) {
 				bestAngle = angles[a];
 				bestDensity = density;
 			}
@@ -119,17 +121,17 @@ public class Gun {
 	 * Determines the power the gun should fire at.
 	 */
 	private double getBulletPower() {
-		if(power != null)
+		if (power != null)
 			return power;
-		
+
 		double bulletPower = 1.95;
-		
-		if(state.targetDistance < 140)
+
+		if (state.targetDistance < 140)
 			bulletPower = 2.95;
-		
+
 		bulletPower = Math.min(state.energy / 4.0, bulletPower);
 		bulletPower = Math.min(state.targetEnergy / 4.0, bulletPower);
-		
+
 		return bulletPower;
 	}
 
@@ -163,27 +165,28 @@ public class Gun {
 	 */
 	public void execute(final TargetState state) {
 		// don't bother if we don't know where the enemy is
-		if(state.targetPosition == null) return;
+		if (state.targetPosition == null)
+			return;
 		this.state = state;
-		
+
 		final double angle = next.angleTo(state.targetPosition);
 		// Update our current waves
 		updateWaves();
 		// calculate some basic gun stuff
 		final double bulletPower = getBulletPower();
 		final GunWave wave = createWave(bulletPower, angle);
-		wave.data = new GunFormula(wave,state);
+		wave.data = new GunFormula(wave, state);
 		wave.data.weight = 0.1;
 		// turn the gun
 		final double offset = getBestAngleOffset(wave);
 		bot.setTurnGun(Utils.normalRelativeAngle(angle - state.gunHeading + offset));
 		Bullet b = bot.setFire(bulletPower);
 		// fire gun and create new waves
-		if(state.gunTurnRemaining == 0 && b != null) {
+		if (state.gunTurnRemaining == 0 && b != null) {
 			wave.data.weight = 1.0;
 		}
 		waves.add(wave);
-		
+
 	}
 
 	/**
@@ -191,10 +194,10 @@ public class Gun {
 	 */
 	private void updateWaves() {
 		final Iterator<GunWave> it = waves.iterator();
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			final GunWave w = it.next();
 			w.update(state.time, state.targetPosition);
-			if(w.isCompleted()) {
+			if (w.isCompleted()) {
 				it.remove();
 				processCompletedWave(w);
 			}

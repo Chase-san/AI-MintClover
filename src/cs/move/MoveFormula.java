@@ -34,7 +34,7 @@ public class MoveFormula {
 	public static final double[] weights = new double[] { 6, 1, 3.2, 4, 2, 1, 2.2 };
 	private final double[] point;
 	public double guessfactor;
-	
+
 	/**
 	 * Provides a formula that can be used as a seed.
 	 */
@@ -42,17 +42,13 @@ public class MoveFormula {
 		point = new double[] { 0.5, 0.5, 0, 0.5, 0.5, 0.6, 1 };
 		guessfactor = 0;
 	}
-	
+
 	public MoveFormula(MoveWave wave, TargetState state) {
-		point = new double[] {
-			Math.abs(state.lateralVelocity) / 8.0,
-			(state.advancingVelocity + 8.0) / 16.0,
-			state.distanceLast10/80.0,
-			Tools.limit(0, Math.abs(state.forwardOrbitalAngleToWall)/Math.PI*0.5, 1),
-			Tools.limit(0, Math.abs(state.forwardOrbitalAngleToWall)/Math.PI, 1),
-			Math.min(state.targetDistance/800.0,1),
-			Math.min(state.timeSinceOrbitalDirectionChange/400.0,1)
-		};
+		point = new double[] { Math.abs(state.lateralVelocity) / 8.0, (state.advancingVelocity + 8.0) / 16.0,
+				state.distanceLast10 / 80.0,
+				Tools.limit(0, Math.abs(state.forwardOrbitalAngleToWall) / Math.PI * 0.5, 1),
+				Tools.limit(0, Math.abs(state.forwardOrbitalAngleToWall) / Math.PI, 1),
+				Math.min(state.targetDistance / 800.0, 1), Math.min(state.timeSinceOrbitalDirectionChange / 400.0, 1) };
 	}
 
 	public final double[] getArray() {

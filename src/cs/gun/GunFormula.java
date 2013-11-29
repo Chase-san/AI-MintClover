@@ -37,20 +37,19 @@ public class GunFormula {
 	private final double[] point;
 	public double weight = 0.1;
 	public double guessfactor;
-	
+
 	public GunFormula(GunWave wave, TargetState state) {
 		final double bulletFlightTime = state.targetDistance / wave.speed;
 		point = new double[] {
 				Math.min(3, wave.power) / 3,
 				Math.min(91, bulletFlightTime) / 91,
 				Math.abs(state.targetLateralVelocity) / 8,
-				Math.min(1.5,Tools.orbitalWallDistance(wave, state.targetPosition,
-						wave.power, state.targetOrbitDirection, State.battlefield)) / 1.5,
-				Math.min(1.5,Tools.orbitalWallDistance(wave, state.targetPosition,
-						wave.power, -state.targetOrbitDirection, State.battlefield)) / 1.5,
-				Math.min(1.0,state.targetTimeSinceVelocityChange / bulletFlightTime) / 1.0,
-				Math.min(128, state.targetDistanceLast16) / 128,
-			};
+				Math.min(1.5, Tools.orbitalWallDistance(wave, state.targetPosition, wave.power,
+						state.targetOrbitDirection, State.battlefield)) / 1.5,
+				Math.min(1.5, Tools.orbitalWallDistance(wave, state.targetPosition, wave.power,
+						-state.targetOrbitDirection, State.battlefield)) / 1.5,
+				Math.min(1.0, state.targetTimeSinceVelocityChange / bulletFlightTime) / 1.0,
+				Math.min(128, state.targetDistanceLast16) / 128, };
 	}
 
 	public final double[] getArray() {

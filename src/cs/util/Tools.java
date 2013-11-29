@@ -27,14 +27,17 @@ import robocode.util.Utils;
 
 /**
  * A set of useful methods and other tools for the robot to make use of.
+ * 
  * @author Robert Maupin (Chase)
- *
+ * 
  */
 public class Tools {
 	private static final int WALL_MARGIN = 18;
 
-	private static final double distanceWest(final double toWall, final double eDist, final double eAngle, final int oDir) {
-		if(eDist <= toWall) return Double.POSITIVE_INFINITY;
+	private static final double distanceWest(final double toWall, final double eDist, final double eAngle,
+			final int oDir) {
+		if (eDist <= toWall)
+			return Double.POSITIVE_INFINITY;
 		final double wallAngle = Math.acos(-oDir * toWall / eDist) + oDir * (Math.PI / 2.0);
 		return Utils.normalAbsoluteAngle(oDir * (wallAngle - eAngle));
 	}
@@ -57,10 +60,12 @@ public class Tools {
 	 */
 	public static final double getWallDistance(final Vector target, final double fieldWidth, final double fieldHeight,
 			final double targetDistance, final double targetAngle, final int orbitDirection) {
-		return Math.min(Math.min(Math.min(
-						distanceWest(fieldHeight - WALL_MARGIN - target.y, targetDistance, targetAngle - Math.PI / 2.0, orbitDirection),
-						distanceWest(fieldWidth - WALL_MARGIN - target.x, targetDistance, targetAngle + Math.PI, orbitDirection)),
-						distanceWest(target.y - WALL_MARGIN, targetDistance, targetAngle + Math.PI / 2.0, orbitDirection)),
+		return Math.min(Math.min(Math
+				.min(distanceWest(fieldHeight - WALL_MARGIN - target.y, targetDistance, targetAngle - Math.PI / 2.0,
+						orbitDirection),
+						distanceWest(fieldWidth - WALL_MARGIN - target.x, targetDistance, targetAngle + Math.PI,
+								orbitDirection)),
+				distanceWest(target.y - WALL_MARGIN, targetDistance, targetAngle + Math.PI / 2.0, orbitDirection)),
 				distanceWest(target.x - WALL_MARGIN, targetDistance, targetAngle, orbitDirection));
 	}
 
@@ -83,8 +88,8 @@ public class Tools {
 	 *            The circles radius
 	 * @return An array of concatenated x,y coordinates {x1,y1,x2,y2,...}
 	 */
-	public static final double[] intersectRectCircle(final double rx, final double ry, final double rw, final double rh, final double cx,
-			final double cy, final double r) {
+	public static final double[] intersectRectCircle(final double rx, final double ry, final double rw,
+			final double rh, final double cx, final double cy, final double r) {
 		final double mx = rx + rw;
 		final double my = ry + rh;
 		// every line can intersect twice, meaning 4 points at most per line
@@ -96,40 +101,40 @@ public class Tools {
 		 * 
 		 * Equivalent to below, just the hardcoded ifs are faster
 		 */
-		if(in.length == 2) {
+		if (in.length == 2) {
 			intersect[n++] = in[0];
 			intersect[n++] = in[1];
-		} else if(in.length == 4) {
+		} else if (in.length == 4) {
 			intersect[n++] = in[0];
 			intersect[n++] = in[1];
 			intersect[n++] = in[2];
 			intersect[n++] = in[3];
 		}
 		in = intersectSegCircle(rx, my, mx, my, cx, cy, r); // bottom
-		if(in.length == 2) {
+		if (in.length == 2) {
 			intersect[n++] = in[0];
 			intersect[n++] = in[1];
-		} else if(in.length == 4) {
+		} else if (in.length == 4) {
 			intersect[n++] = in[0];
 			intersect[n++] = in[1];
 			intersect[n++] = in[2];
 			intersect[n++] = in[3];
 		}
 		in = intersectSegCircle(rx, ry, rx, my, cx, cy, r); // left
-		if(in.length == 2) {
+		if (in.length == 2) {
 			intersect[n++] = in[0];
 			intersect[n++] = in[1];
-		} else if(in.length == 4) {
+		} else if (in.length == 4) {
 			intersect[n++] = in[0];
 			intersect[n++] = in[1];
 			intersect[n++] = in[2];
 			intersect[n++] = in[3];
 		}
 		in = intersectSegCircle(mx, ry, mx, my, cx, cy, r); // right
-		if(in.length == 2) {
+		if (in.length == 2) {
 			intersect[n++] = in[0];
 			intersect[n++] = in[1];
-		} else if(in.length == 4) {
+		} else if (in.length == 4) {
 			intersect[n++] = in[0];
 			intersect[n++] = in[1];
 			intersect[n++] = in[2];
@@ -154,9 +159,10 @@ public class Tools {
 	 * @return an array of vectors containing the points of intersection
 	 */
 	public static final Vector[] intersectRectCircle(final Rectangle rect, final Vector c, final double r) {
-		final double[] pnts = intersectRectCircle(rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight(), c.x, c.y, r);
+		final double[] pnts = intersectRectCircle(rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight(),
+				c.x, c.y, r);
 		final Vector[] output = new Vector[pnts.length / 2];
-		for(int i = 0; i < output.length; ++i)
+		for (int i = 0; i < output.length; ++i)
 			output[i] = new Vector(pnts[i * 2], pnts[i * 2 + 1]);
 		return output;
 	}
@@ -175,9 +181,10 @@ public class Tools {
 	 *         intersection { {x1,y1}, {x2,y2}, ... }
 	 */
 	public static final double[][] intersectRectCircleD(final Rectangle rect, final Vector c, final double r) {
-		final double[] pnts = intersectRectCircle(rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight(), c.x, c.y, r);
+		final double[] pnts = intersectRectCircle(rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight(),
+				c.x, c.y, r);
 		final double[][] output = new double[pnts.length / 2][2];
-		for(int i = 0; i < output.length; ++i)
+		for (int i = 0; i < output.length; ++i)
 			output[i] = new double[] { pnts[i * 2], pnts[i * 2 + 1] };
 		return output;
 	}
@@ -202,8 +209,8 @@ public class Tools {
 	 * @return An array of intersection points. Returns an empty array if they
 	 *         do not intersect.
 	 */
-	public static final double[] intersectSegCircle(final double lax, final double lay, final double lbx, final double lby,
-			final double cx, final double cy, final double r) {
+	public static final double[] intersectSegCircle(final double lax, final double lay, final double lbx,
+			final double lby, final double cx, final double cy, final double r) {
 		final double diffx = cx - lax;
 		final double diffy = cy - lay;
 		double dirx = lbx - lax;
@@ -214,20 +221,23 @@ public class Tools {
 		final double a0 = diffx * diffx + diffy * diffy - r * r;
 		final double a1 = diffx * dirx + diffy * diry;
 		double discr = a1 * a1 - a0;
-		if(discr > 0) {
+		if (discr > 0) {
 			/* The circle and line meet at two places */
 			final double lengthSq = (lbx - lax) * (lbx - lax) + (lby - lay) * (lby - lay);
 			discr = Math.sqrt(discr);
 			final double m1 = a1 - discr;
 			final double m2 = a1 + discr;
-			if(m1 > 0 && m1 * m1 < lengthSq && m2 > 0 && m2 * m2 < lengthSq) return new double[] { lax + m1 * dirx, lay + m1 * diry,
-					lax + m2 * dirx, lay + m2 * diry };
-			else if(m1 > 0 && m1 * m1 < lengthSq) return new double[] { lax + m1 * dirx, lay + m1 * diry };
-			else if(m2 > 0 && m2 * m2 < lengthSq) return new double[] { lax + m2 * dirx, lay + m2 * diry };
-		} else if(discr == 0) {
+			if (m1 > 0 && m1 * m1 < lengthSq && m2 > 0 && m2 * m2 < lengthSq)
+				return new double[] { lax + m1 * dirx, lay + m1 * diry, lax + m2 * dirx, lay + m2 * diry };
+			else if (m1 > 0 && m1 * m1 < lengthSq)
+				return new double[] { lax + m1 * dirx, lay + m1 * diry };
+			else if (m2 > 0 && m2 * m2 < lengthSq)
+				return new double[] { lax + m2 * dirx, lay + m2 * diry };
+		} else if (discr == 0) {
 			final double lengthSq = (lbx - lax) * (lbx - lax) + (lby - lay) * (lby - lay);
 			/* We have ourselves a tangent */
-			if(a1 > 0 && a1 * a1 < lengthSq) return new double[] { lax + a1 * dirx, lay + a1 * diry };
+			if (a1 > 0 && a1 * a1 < lengthSq)
+				return new double[] { lax + a1 * dirx, lay + a1 * diry };
 		}
 		return new double[0];
 	}
@@ -254,16 +264,17 @@ public class Tools {
 	 * @author Voidious (original)
 	 * @author Chase (porting)
 	 */
-	public static double orbitalWallDistance(final Vector sourceLocation, final Vector targetLocation, final double bulletPower,
-			final int direction, final Rectangle2D.Double battlefield) {
+	public static double orbitalWallDistance(final Vector sourceLocation, final Vector targetLocation,
+			final double bulletPower, final int direction, final Rectangle2D.Double battlefield) {
 		final double absBearing = sourceLocation.angleTo(targetLocation);
 		final double distance = sourceLocation.distance(targetLocation);
 		final double maxEscapeAngle = Math.asin(8.0 / (20 - 3.0 * bulletPower));
 		// 1.0 means the max range of orbital movement
 		// exactly reaches bounds of battle field
 		double wallDistance = 2.0;
-		for(int x = 0; x < 200; x++)
-			if(!battlefield.contains(sourceLocation.x + Math.sin(absBearing + direction * (x / 100.0) * maxEscapeAngle) * distance,
+		for (int x = 0; x < 200; x++)
+			if (!battlefield.contains(
+					sourceLocation.x + Math.sin(absBearing + direction * (x / 100.0) * maxEscapeAngle) * distance,
 					sourceLocation.y + Math.cos(absBearing + direction * (x / 100.0) * maxEscapeAngle) * distance)) {
 				wallDistance = x / 100.0;
 				break;
@@ -280,9 +291,11 @@ public class Tools {
 	 * @return 1 if value is greater then 0, -1 otherwise
 	 */
 	public static int sign(final double value) {
-		if(value > 0) return 1;
+		if (value > 0)
+			return 1;
 		return -1;
 	}
 
-	private Tools() {}
+	private Tools() {
+	}
 }

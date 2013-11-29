@@ -52,8 +52,8 @@ import robocode.robotinterfaces.peer.IAdvancedRobotPeer;
 import robocode.robotinterfaces.peer.IBasicRobotPeer;
 
 /**
- * The normal AdvancedRobot class has years of clutter within it.
- * This class has no robot specific code in it, meaning you can safely ignore it.
+ * The normal AdvancedRobot class has years of clutter within it. This class has
+ * no robot specific code in it, meaning you can safely ignore it.
  * 
  * @author Robert Maupin (Chase)
  * 
@@ -77,7 +77,7 @@ public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvan
 	public final void execute() {
 		peer.execute();
 	}
-	
+
 	protected IAdvancedRobotPeer getPeer() {
 		return peer;
 	}
@@ -111,7 +111,7 @@ public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvan
 	public final String getName() {
 		return peer.getName();
 	}
-	
+
 	public final File getDataFile(String filename) {
 		return peer.getDataFile(filename);
 	}
@@ -134,55 +134,72 @@ public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvan
 	}
 
 	@Override
-	public void onBattleEnded(final BattleEndedEvent e) {}
+	public void onBattleEnded(final BattleEndedEvent e) {
+	}
 
-	public void onBulletFired(final Bullet b) {}
-
-	@Override
-	public void onBulletHit(final BulletHitEvent e) {}
-
-	@Override
-	public void onBulletHitBullet(final BulletHitBulletEvent e) {}
-
-	@Override
-	public void onBulletMissed(final BulletMissedEvent e) {}
-
-	@Override
-	public final void onCustomEvent(final CustomEvent e) {
-		if(e.getCondition() instanceof TurnEndedEventCondition) onTurnEnded(e);
+	public void onBulletFired(final Bullet b) {
 	}
 
 	@Override
-	public void onDeath(final DeathEvent e) {}
+	public void onBulletHit(final BulletHitEvent e) {
+	}
 
 	@Override
-	public void onHitByBullet(final HitByBulletEvent e) {}
+	public void onBulletHitBullet(final BulletHitBulletEvent e) {
+	}
 
 	@Override
-	public void onHitRobot(final HitRobotEvent e) {}
+	public void onBulletMissed(final BulletMissedEvent e) {
+	}
 
 	@Override
-	public void onHitWall(final HitWallEvent e) {}
+	public final void onCustomEvent(final CustomEvent e) {
+		if (e.getCondition() instanceof TurnEndedEventCondition)
+			onTurnEnded(e);
+	}
 
 	@Override
-	public void onRobotDeath(final RobotDeathEvent e) {}
+	public void onDeath(final DeathEvent e) {
+	}
 
 	@Override
-	public void onRoundEnded(final RoundEndedEvent e) {}
+	public void onHitByBullet(final HitByBulletEvent e) {
+	}
 
 	@Override
-	public void onScannedRobot(final ScannedRobotEvent e) {}
+	public void onHitRobot(final HitRobotEvent e) {
+	}
 
 	@Override
-	public void onSkippedTurn(final SkippedTurnEvent e) {}
+	public void onHitWall(final HitWallEvent e) {
+	}
 
 	@Override
-	public void onStatus(final StatusEvent e) {}
-
-	public void onTurnEnded(final Event e) {}
+	public void onRobotDeath(final RobotDeathEvent e) {
+	}
 
 	@Override
-	public void onWin(final WinEvent e) {}
+	public void onRoundEnded(final RoundEndedEvent e) {
+	}
+
+	@Override
+	public void onScannedRobot(final ScannedRobotEvent e) {
+	}
+
+	@Override
+	public void onSkippedTurn(final SkippedTurnEvent e) {
+	}
+
+	@Override
+	public void onStatus(final StatusEvent e) {
+	}
+
+	public void onTurnEnded(final Event e) {
+	}
+
+	@Override
+	public void onWin(final WinEvent e) {
+	}
 
 	public final void rescan() {
 		peer.rescan();
@@ -222,7 +239,7 @@ public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvan
 
 	public final Bullet setFire(final double power) {
 		final Bullet b = peer.setFire(power);
-		if(b != null) {
+		if (b != null) {
 			onBulletFired(b);
 		}
 		return b;

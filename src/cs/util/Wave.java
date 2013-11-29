@@ -26,8 +26,9 @@ import robocode.util.Utils;
 
 /**
  * A class that encapsulates the common functions of a Wave.
+ * 
  * @author Robert Maupin (Chase)
- *
+ * 
  */
 @SuppressWarnings("serial")
 public class Wave extends Vector {
@@ -44,15 +45,19 @@ public class Wave extends Vector {
 	/**
 	 * Updates the minimum and maximum intersection factors for a given set of
 	 * intersection points.
+	 * 
 	 * @param points
 	 *            a set of intersection points in a concatenated array.
 	 *            {x1,y1,x2,y2,...}
 	 */
 	private void expandMinMaxFactors(final double[] points) {
-		for(int i = 0; i < points.length; i += 2) {
-			final double angle = Utils.normalRelativeAngle(angleTo(points[i], points[i + 1]) - directAngle) / escapeAngle;
-			if(angle < minFactor) minFactor = angle;
-			if(angle > maxFactor) maxFactor = angle;
+		for (int i = 0; i < points.length; i += 2) {
+			final double angle = Utils.normalRelativeAngle(angleTo(points[i], points[i + 1]) - directAngle)
+					/ escapeAngle;
+			if (angle < minFactor)
+				minFactor = angle;
+			if (angle > maxFactor)
+				maxFactor = angle;
 		}
 	}
 
@@ -76,7 +81,7 @@ public class Wave extends Vector {
 	public boolean isCompleted() {
 		return completed;
 	}
-	
+
 	/**
 	 * Determines if this wave has started intersecting the enemy.
 	 * 
@@ -100,25 +105,25 @@ public class Wave extends Vector {
 		boolean intersects = false;
 		final double radius = getRadius(time);
 		double[] pnts = Tools.intersectRectCircle(target.x - 18, target.y - 18, 36, 36, x, y, radius);
-		if(pnts.length != 0) {
+		if (pnts.length != 0) {
 			expandMinMaxFactors(pnts);
 			intersects = intersected = true;
 		}
 		final double radius2 = radius + speed;
 		pnts = Tools.intersectRectCircle(target.x - 18, target.y - 18, 36, 36, x, y, radius2);
-		if(pnts.length != 0) {
+		if (pnts.length != 0) {
 			expandMinMaxFactors(pnts);
 			intersects = intersected = true;
 		}
-		for(final double[] pnt : new double[][] {
-				{ target.x - 18, target.y - 18 }, { target.x + 18, target.y - 18 },
+		for (final double[] pnt : new double[][] { { target.x - 18, target.y - 18 }, { target.x + 18, target.y - 18 },
 				{ target.x - 18, target.y + 18 }, { target.x + 18, target.y + 18 } }) {
 			final double dist = distanceSq(pnt[0], pnt[1]);
-			if(dist < radius2 * radius2 && dist > radius * radius) {
+			if (dist < radius2 * radius2 && dist > radius * radius) {
 				expandMinMaxFactors(pnt);
 			}
 		}
-		if(!intersects && intersected) completed = true;
+		if (!intersects && intersected)
+			completed = true;
 	}
-	
+
 }

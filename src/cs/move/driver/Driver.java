@@ -29,8 +29,12 @@ import cs.util.Vector;
  */
 public interface Driver {
 	public int getDirection();
+
 	public double getMaxVelocity();
+
 	public double getAngleToTurn();
+
 	public void setBattlefieldSize(double width, double height);
+
 	public void drive(Vector position, Vector center, double heading, double velocity, int orbitDirection);
 }

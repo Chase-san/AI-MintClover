@@ -52,18 +52,18 @@ public class TargetState extends State {
 	public double targetDistanceLast16;
 	public long targetTimeSinceVelocityChange;
 	public int targetOrbitDirection;
-	
+
 	public long timeSinceOrbitalDirectionChange;
 	public double forwardOrbitalAngleToWall;
 	public double reverseOrbitalAngleToWall;
 	public double advancingVelocity;
 	public double lateralVelocity;
 	public int orbitDirection;
-	
+
 	public TargetState(StatusEvent e, State lastState) {
 		super(e, lastState);
 	}
-	
+
 	public void update(final BulletHitEvent e) {
 		targetEnergy -= Rules.getBulletDamage(e.getBullet().getPower());
 	}
@@ -73,7 +73,7 @@ public class TargetState extends State {
 	}
 
 	public void execute(final ScannedRobotEvent e, final TargetState lastState) {
-		//target data
+		// target data
 		targetRelativeAngle = e.getBearingRadians();
 		targetAngle = bodyHeading + targetRelativeAngle;
 		targetVelocity = e.getVelocity();
@@ -81,38 +81,36 @@ public class TargetState extends State {
 		targetLateralVelocity = targetVelocity * Math.sin(bearing);
 		targetOrbitDirection = targetLateralVelocity > 0 ? CLOCKWISE : COUNTERCLOCKWISE;
 		targetHeading = e.getHeadingRadians();
-		//since we call scanned robot after the other two, we need += this
+		// since we call scanned robot after the other two, we need += this
 		targetEnergy = e.getEnergy();
 		targetPosition = position.clone().project(targetAngle, targetDistance = e.getDistance());
-		
-		//robot data
+
+		// robot data
 		advancingVelocity = velocity * Math.cos(e.getBearingRadians());
 		lateralVelocity = velocity * Math.sin(e.getBearingRadians());
 		orbitDirection = lateralVelocity > 0 ? CLOCKWISE : COUNTERCLOCKWISE;
-		
-		forwardOrbitalAngleToWall = Tools.getWallDistance(targetPosition,
-				State.battlefieldWidth, State.battlefieldHeight,
-				targetDistance, targetAngle, orbitDirection);
-		reverseOrbitalAngleToWall = Tools.getWallDistance(targetPosition,
-				State.battlefieldWidth, State.battlefieldHeight,
-				targetDistance, targetAngle, -orbitDirection);
-		
+
+		forwardOrbitalAngleToWall = Tools.getWallDistance(targetPosition, State.battlefieldWidth,
+				State.battlefieldHeight, targetDistance, targetAngle, orbitDirection);
+		reverseOrbitalAngleToWall = Tools.getWallDistance(targetPosition, State.battlefieldWidth,
+				State.battlefieldHeight, targetDistance, targetAngle, -orbitDirection);
+
 		pastTargetPosition.addFirst(targetPosition);
-		if(lastState != null) {
+		if (lastState != null) {
 			targetHeadingDelta = targetHeading - lastState.targetHeading;
 			targetVelocityDelta = targetVelocity - lastState.targetVelocity;
-			
+
 			++timeSinceOrbitalDirectionChange;
-			if(lastState.orbitDirection != orbitDirection) {
+			if (lastState.orbitDirection != orbitDirection) {
 				timeSinceOrbitalDirectionChange = 0;
 			}
-			
+
 			++targetTimeSinceVelocityChange;
-			if(Math.abs(targetLateralVelocity - lastState.targetLateralVelocity) > 0.5) {
+			if (Math.abs(targetLateralVelocity - lastState.targetLateralVelocity) > 0.5) {
 				targetTimeSinceVelocityChange = 0;
 			}
-			
-			if(pastTargetPosition.size() < 16) {
+
+			if (pastTargetPosition.size() < 16) {
 				targetDistanceLast16 = targetPosition.distance(pastTargetPosition.getLast());
 			} else {
 				targetDistanceLast16 = targetPosition.distance(pastTargetPosition.removeLast());

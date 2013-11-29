@@ -32,7 +32,8 @@ public class Rectangle extends Rectangle2D.Double {
 	/**
 	 * Initializes this rectangle to (0,0) with a width and height of 0.
 	 */
-	public Rectangle() {}
+	public Rectangle() {
+	}
 
 	/**
 	 * Initializes this rectangle with the specified coordinates and size.
@@ -53,8 +54,8 @@ public class Rectangle extends Rectangle2D.Double {
 	}
 
 	public final double[][] getEdges() {
-		return new double[][] { { x, y, x + width, y }, { x, y, x, y + height }, { x, y + height, x + width, y + height },
-				{ x + width, y, x + width, y + height } };
+		return new double[][] { { x, y, x + width, y }, { x, y, x, y + height },
+				{ x, y + height, x + width, y + height }, { x + width, y, x + width, y + height } };
 	}
 
 	public final void setFrame(final Vector center, final double width, final double height) {

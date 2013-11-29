@@ -30,10 +30,10 @@ import java.util.List;
  * </p>
  * 
  * <p>
- * <b>Chase</b>: I removed the silly ability to have a 0 maximum size and instead
- * made it a sentinel value. So that instead of a null sizeLimit meaning no
- * limit, and size 0 or lower instead means no limit. Since those limits are not
- * useful in my case. 
+ * <b>Chase</b>: I removed the silly ability to have a 0 maximum size and
+ * instead made it a sentinel value. So that instead of a null sizeLimit meaning
+ * no limit, and size 0 or lower instead means no limit. Since those limits are
+ * not useful in my case.
  * </p>
  * 
  * @author Rednaxela (original)
@@ -113,8 +113,7 @@ public abstract class KdTree<T> {
 	 */
 	public void addPoint(double[] location, T value) {
 		KdTree<T> cursor = this;
-		while (cursor.locations == null
-				|| cursor.locationCount >= cursor.locations.length) {
+		while (cursor.locations == null || cursor.locationCount >= cursor.locations.length) {
 			if (cursor.locations != null) {
 				cursor.splitDimension = cursor.findWidestAxis();
 				cursor.splitValue = (cursor.minLimit[cursor.splitDimension] + cursor.maxLimit[cursor.splitDimension]) * 0.5;
@@ -130,12 +129,10 @@ public abstract class KdTree<T> {
 				// bucket size instead
 				if (cursor.minLimit[cursor.splitDimension] == cursor.maxLimit[cursor.splitDimension]) {
 					double[][] newLocations = new double[cursor.locations.length * 2][];
-					System.arraycopy(cursor.locations, 0, newLocations, 0,
-							cursor.locationCount);
+					System.arraycopy(cursor.locations, 0, newLocations, 0, cursor.locationCount);
 					cursor.locations = newLocations;
 					Object[] newData = new Object[newLocations.length];
-					System.arraycopy(cursor.data, 0, newData, 0,
-							cursor.locationCount);
+					System.arraycopy(cursor.data, 0, newData, 0, cursor.locationCount);
 					cursor.data = newData;
 					break;
 				}
@@ -255,11 +252,9 @@ public abstract class KdTree<T> {
 		}
 		for (int i = 0; i < cursor.locationCount; i++) {
 			if (cursor.locations[i] == location) {
-				System.arraycopy(cursor.locations, i + 1, cursor.locations, i,
-						cursor.locationCount - i - 1);
+				System.arraycopy(cursor.locations, i + 1, cursor.locations, i, cursor.locationCount - i - 1);
 				cursor.locations[cursor.locationCount - 1] = null;
-				System.arraycopy(cursor.data, i + 1, cursor.data, i,
-						cursor.locationCount - i - 1);
+				System.arraycopy(cursor.data, i + 1, cursor.data, i, cursor.locationCount - i - 1);
 				cursor.data[cursor.locationCount - 1] = null;
 				do {
 					cursor.locationCount--;
@@ -295,8 +290,7 @@ public abstract class KdTree<T> {
 	 * Calculates the nearest 'count' points to 'location'
 	 */
 	@SuppressWarnings("unchecked")
-	public List<Entry<T>> nearestNeighbor(double[] location, int count,
-			boolean sequentialSorting) {
+	public List<Entry<T>> nearestNeighbor(double[] location, int count, boolean sequentialSorting) {
 		KdTree<T> cursor = this;
 		cursor.status = Status.NONE;
 		double range = Double.POSITIVE_INFINITY;
@@ -319,8 +313,7 @@ public abstract class KdTree<T> {
 						}
 					} else {
 						for (int i = 0; i < cursor.locationCount; i++) {
-							double dist = pointDist(cursor.locations[i],
-									location);
+							double dist = pointDist(cursor.locations[i], location);
 							resultHeap.addValue(dist, cursor.data[i]);
 						}
 					}
@@ -358,8 +351,7 @@ public abstract class KdTree<T> {
 			// not been visited yet.
 			if (cursor.status == Status.ALLVISITED) {
 				if (nextCursor.locationCount == 0
-						|| (!nextCursor.singularity && pointRegionDist(
-								location, nextCursor.minLimit,
+						|| (!nextCursor.singularity && pointRegionDist(location, nextCursor.minLimit,
 								nextCursor.maxLimit) > range)) {
 					continue;
 				}
@@ -372,13 +364,11 @@ public abstract class KdTree<T> {
 		if (sequentialSorting) {
 			while (resultHeap.values > 0) {
 				resultHeap.removeLargest();
-				results.add(new Entry<T>(resultHeap.removedDist,
-						(T) resultHeap.removedData));
+				results.add(new Entry<T>(resultHeap.removedDist, (T) resultHeap.removedData));
 			}
 		} else {
 			for (int i = 0; i < resultHeap.values; i++) {
-				results.add(new Entry<T>(resultHeap.distance[i],
-						(T) resultHeap.data[i]));
+				results.add(new Entry<T>(resultHeap.distance[i], (T) resultHeap.data[i]));
 			}
 		}
 		return results;
@@ -387,8 +377,7 @@ public abstract class KdTree<T> {
 	// Override in subclasses
 	protected abstract double pointDist(double[] p1, double[] p2);
 
-	protected abstract double pointRegionDist(double[] point, double[] min,
-			double[] max);
+	protected abstract double pointRegionDist(double[] point, double[] min, double[] max);
 
 	protected double getAxisWeightHint(int i) {
 		return 1.0;
@@ -407,8 +396,7 @@ public abstract class KdTree<T> {
 			throw new IllegalStateException();
 		}
 
-		protected double pointRegionDist(double[] point, double[] min,
-				double[] max) {
+		protected double pointRegionDist(double[] point, double[] min, double[] max) {
 			throw new IllegalStateException();
 		}
 	}
@@ -444,8 +432,7 @@ public abstract class KdTree<T> {
 			return d;
 		}
 
-		protected double pointRegionDist(double[] point, double[] min,
-				double[] max) {
+		protected double pointRegionDist(double[] point, double[] min, double[] max) {
 			double d = 0;
 			for (int i = 0; i < point.length; i++) {
 				double diff = 0;
@@ -481,8 +468,7 @@ public abstract class KdTree<T> {
 			return d;
 		}
 
-		protected double pointRegionDist(double[] point, double[] min,
-				double[] max) {
+		protected double pointRegionDist(double[] point, double[] min, double[] max) {
 			double d = 0;
 			for (int i = 0; i < point.length; i++) {
 				double diff = 0;

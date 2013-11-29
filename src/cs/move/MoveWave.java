@@ -34,9 +34,9 @@ public class MoveWave extends Wave {
 	private double sMxF = 0;
 	private boolean sI = false;
 	private boolean sC = false;
-	
-	//TODO remember why I made these state methods
-	
+
+	// TODO remember why I made these state methods
+
 	/** Backs up the current state. */
 	public void storeState() {
 		sMnF = minFactor;
@@ -44,7 +44,7 @@ public class MoveWave extends Wave {
 		sI = intersected;
 		sC = completed;
 	}
-	
+
 	/** Resets the current state. */
 	public void resetState() {
 		minFactor = 100;
@@ -52,7 +52,7 @@ public class MoveWave extends Wave {
 		intersected = false;
 		completed = false;
 	}
-	
+
 	/** Restores the previously backed up state */
 	public void restoreState() {
 		minFactor = sMnF;
@@ -60,7 +60,7 @@ public class MoveWave extends Wave {
 		intersected = sI;
 		completed = sC;
 	}
-	
+
 	public double getETA(Vector target, long time) {
 		final double halfBotWidth = 18 + Math.sin(angleTo(target)) * 7.4558441;
 		double distance = distance(target) - getRadius(time) - halfBotWidth;

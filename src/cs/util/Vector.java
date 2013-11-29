@@ -26,6 +26,7 @@ import java.awt.geom.Point2D;
 
 /**
  * This is an extended Point2D.Double class to contain vector specific methods.
+ * 
  * @author Robert Maupin (Chase)
  */
 @SuppressWarnings("serial")
@@ -33,7 +34,8 @@ public class Vector extends Point2D.Double implements Cloneable {
 	/**
 	 * Initializes this vector to 0,0
 	 */
-	public Vector() {}
+	public Vector() {
+	}
 
 	/**
 	 * Initializes this vector to x,y
@@ -87,13 +89,13 @@ public class Vector extends Point2D.Double implements Cloneable {
 	public final Vector clone() {
 		return (Vector) super.clone();
 	}
-	
+
 	public final double length() {
-		return Math.sqrt(x*x+y*y);
+		return Math.sqrt(x * x + y * y);
 	}
-	
+
 	public final double lengthSq() {
-		return x*x+y*y;
+		return x * x + y * y;
 	}
 
 	/**

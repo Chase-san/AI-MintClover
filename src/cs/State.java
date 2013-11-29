@@ -30,8 +30,8 @@ import cs.util.Rectangle;
 import cs.util.Vector;
 
 /**
- * A state of a single round. This class is a bit of a mess.
- * But it performs all the data gathering required by the robot.
+ * A state of a single round. This class is a bit of a mess. But it performs all
+ * the data gathering required by the robot.
  * 
  * @author Chase
  * 
@@ -43,7 +43,7 @@ public abstract class State {
 	public static double coolingRate;
 	public static int battlefieldHeight;
 	public static int battlefieldWidth;
-	
+
 	public ArrayDeque<Vector> pastPosition = new ArrayDeque<Vector>();
 	public final Vector position;
 	public final double bodyHeading;
@@ -57,7 +57,7 @@ public abstract class State {
 	public final long time;
 	public final int others;
 	public final int roundNum;
-	
+
 	public double distanceLast10;
 	public double bodyHeadingDelta;
 	public double velocityDelta;
@@ -73,17 +73,17 @@ public abstract class State {
 		gunHeat = status.getGunHeat();
 		energy = status.getEnergy();
 		velocity = status.getVelocity();
-		
+
 		gunTurnRemaining = status.getGunTurnRemainingRadians();
 		bodyTurnRemaining = status.getTurnRemainingRadians();
 		others = status.getOthers();
-		
+
 		pastPosition.addFirst(position);
-		if(lastState != null) {
+		if (lastState != null) {
 			bodyHeadingDelta = bodyHeading - lastState.bodyHeading;
 			velocityDelta = velocity - lastState.velocity;
-			
-			if(pastPosition.size() < 10) {
+
+			if (pastPosition.size() < 10) {
 				distanceLast10 = position.distance(pastPosition.getLast());
 			} else {
 				distanceLast10 = position.distance(pastPosition.removeLast());

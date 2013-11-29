@@ -29,26 +29,27 @@ import cs.util.Vector;
 
 /**
  * A driver based off of Seraphim's Movement.
+ * 
  * @author Robert Maupin (Chase)
  */
 public class SeraphimDriver implements Driver {
 	private static final double bestDist = 500;
-	
+
 	private int direction = 1;
 	private double maxVelocity = 0;
 	private double angleToTurn = 0;
-	
+
 	private static final double WALL_MARGIN = 20;
-	
+
 	private double fw = 800;
 	private double fh = 600;
-	
+
 	@Override
 	public void setBattlefieldSize(double width, double height) {
 		fw = width;
 		fh = height;
 	}
-	
+
 	@Override
 	public int getDirection() {
 		return direction;
@@ -66,43 +67,41 @@ public class SeraphimDriver implements Driver {
 
 	@Override
 	public void drive(Vector position, Vector center, double heading, double velocity, int orbitDirection) {
-		center.setLocation(
-				Tools.limit(120, center.x, fw-120),
-				Tools.limit(120, center.y, fw-120)
-			);
-		
+		center.setLocation(Tools.limit(120, center.x, fw - 120), Tools.limit(120, center.y, fw - 120));
+
 		direction = orbitDirection;
-		
+
 		double directAngle = center.angleTo(position);
 		double moveAngle = directAngle + (Math.PI / 2.0) * direction;
-		double distance = position.distance(center); 
+		double distance = position.distance(center);
 		double distModifier = ((distance - bestDist) / bestDist) * direction;
-		
-		if(Math.abs(velocity) < 1e-4 || Math.abs(distance - bestDist) < 50) distModifier = 0;
-		
+
+		if (Math.abs(velocity) < 1e-4 || Math.abs(distance - bestDist) < 50)
+			distModifier = 0;
+
 		moveAngle += distModifier;
-		
+
 		/* Wall smoothing */
 		Vector tmp = new Vector();
-		while(true) {
+		while (true) {
 			tmp.setLocation(position);
 			tmp.project(moveAngle, 160);
-			if(tmp.x > WALL_MARGIN && tmp.x < fw-WALL_MARGIN && tmp.y > WALL_MARGIN && tmp.y < fh-WALL_MARGIN)
+			if (tmp.x > WALL_MARGIN && tmp.x < fw - WALL_MARGIN && tmp.y > WALL_MARGIN && tmp.y < fh - WALL_MARGIN)
 				break;
-			
+
 			moveAngle += 0.05 * direction;
 		}
-		
+
 		/* Determine the best direction */
 		angleToTurn = Utils.normalRelativeAngle(moveAngle - heading);
-		if(Math.abs(angleToTurn) > Math.PI / 2.0) {
+		if (Math.abs(angleToTurn) > Math.PI / 2.0) {
 			angleToTurn = Utils.normalRelativeAngle(angleToTurn + Math.PI);
 			direction = -direction;
 		}
-		
+
 		/* If the turn is to large, slow down a bit */
 		maxVelocity = Rules.MAX_VELOCITY;
-		if(angleToTurn > Math.PI / 8.0)
+		if (angleToTurn > Math.PI / 8.0)
 			maxVelocity = 3.0;
 	}
 }

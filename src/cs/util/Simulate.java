@@ -73,103 +73,104 @@ public final class Simulate {
 	}
 
 	/**
-	 * We calculate one step or turn into the future, and update the values accordingly
+	 * We calculate one step or turn into the future, and update the values
+	 * accordingly
 	 */
 	public void step() {
 		step(true);
 	}
-	
-//	public void stepPrecise() {
-//		step(true);
-//	}
-	
+
+	// public void stepPrecise() {
+	// step(true);
+	// }
+
 	private void step(boolean precise) {
-		////////////////
-		//Heading
+		// //////////////
+		// Heading
 		double lastHeading = heading;
 		double turnRate = Rules.getTurnRateRadians(Math.abs(velocity));
-		//double turn = Math.min(turnRate, Math.max(angleToTurn, -turnRate));
+		// double turn = Math.min(turnRate, Math.max(angleToTurn, -turnRate));
 		double turn = Tools.limit(-turnRate, angleToTurn, turnRate);
 		heading = Utils.normalNearAbsoluteAngle(heading + turn);
 		angleToTurn -= turn;
 
-		////////////////
-		//Movement
-		if(direction != 0 || velocity != 0.0) {
-			////////////////
-			//Velocity
+		// //////////////
+		// Movement
+		if (direction != 0 || velocity != 0.0) {
+			// //////////////
+			// Velocity
 			velocity += getAcceleration();
 
-			////////////////
-			//Position
-			if(precise) {
+			// //////////////
+			// Position
+			if (precise) {
 				position.x += Math.sin(heading) * velocity;
 				position.y += Math.cos(heading) * velocity;
 			} else {
-				//TODO
-//				position.x += sin(heading) * velocity;
-//				position.y += cos(heading) * velocity;
+				// TODO
+				// position.x += sin(heading) * velocity;
+				// position.y += cos(heading) * velocity;
 			}
 		}
 
 		headingDelta = Utils.normalRelativeAngle(heading - lastHeading);
 	}
-	
-	
+
 	private double getAcceleration() {
 		double acceleration = 0;
 		double speed = Math.abs(velocity);
 		double usedMaxVelocity = Math.abs(maxVelocity);
 
-		//Determine the current direction
-		int velDirection = (velocity > 0 ? (int)1 : (int)-1);
+		// Determine the current direction
+		int velDirection = (velocity > 0 ? (int) 1 : (int) -1);
 		int usedDirection = direction;
 
-		//Handles the zero direction, which means stop
-		if(usedDirection == 0) {
+		// Handles the zero direction, which means stop
+		if (usedDirection == 0) {
 			usedMaxVelocity = 0;
 			usedDirection = velDirection;
 		}
 
-		//Handles speedup from zero
-		if(speed < 0.000001) {
+		// Handles speedup from zero
+		if (speed < 0.000001) {
 			velDirection = usedDirection;
 		}
 
-		//All the 'hard' stuff is handled as part of the acceleration
+		// All the 'hard' stuff is handled as part of the acceleration
 
-		//Check if we are speeding up or slowing down
-		if(velDirection == usedDirection) {
-			//We are speeding up or maintaining speed
-			if(speed <= usedMaxVelocity) {
-				//We are speeding up
+		// Check if we are speeding up or slowing down
+		if (velDirection == usedDirection) {
+			// We are speeding up or maintaining speed
+			if (speed <= usedMaxVelocity) {
+				// We are speeding up
 				acceleration = Math.min(Rules.ACCELERATION, usedMaxVelocity - speed);
 			} else {
-				//We are slowing down in the same direction
-				if(speed > usedMaxVelocity)
+				// We are slowing down in the same direction
+				if (speed > usedMaxVelocity)
 					acceleration = Math.max(-Rules.DECELERATION, usedMaxVelocity - speed);
-				//else we are maintaining speed (do nothing)
+				// else we are maintaining speed (do nothing)
 			}
 		} else {
-			//We are slowing down or stopping
-			if(speed < Rules.DECELERATION) {
-				//Limit pass over zero, special rules are here for this
+			// We are slowing down or stopping
+			if (speed < Rules.DECELERATION) {
+				// Limit pass over zero, special rules are here for this
 				double beyondZero = Math.abs(speed - Rules.DECELERATION);
 				acceleration = speed + (beyondZero /= 2.0);
 
-				//Limit our acceleration so it does not go beyond max when passing over zero
-				if(beyondZero > usedMaxVelocity)
+				// Limit our acceleration so it does not go beyond max when
+				// passing over zero
+				if (beyondZero > usedMaxVelocity)
 					acceleration = speed + usedMaxVelocity;
 			} else {
-				//Otherwise
+				// Otherwise
 				acceleration = Rules.DECELERATION;
 			}
 		}
 
-		//Apply the direction to the acceleration, so we don't have
-		//to have a case for both directions
+		// Apply the direction to the acceleration, so we don't have
+		// to have a case for both directions
 		acceleration *= usedDirection;
-		
+
 		return acceleration;
 	}
 }

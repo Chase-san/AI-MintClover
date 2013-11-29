@@ -57,8 +57,7 @@ public final class Mint extends RobotBase {
 		State.battlefieldWidth = (int) getBattleFieldWidth();
 		State.battlefieldHeight = (int) getBattleFieldHeight();
 		State.coolingRate = getGunCoolingRate();
-		State.battlefield = new Rectangle(18, 18, State.battlefieldWidth - 36,
-				State.battlefieldHeight - 36);
+		State.battlefield = new Rectangle(18, 18, State.battlefieldWidth - 36, State.battlefieldHeight - 36);
 		loadProperties();
 	}
 
@@ -102,8 +101,7 @@ public final class Mint extends RobotBase {
 		 */
 		if (doFire) {
 			try {
-				final double override = Double.parseDouble(p.getProperty(
-						"robot.gun.power", "-1.0"));
+				final double override = Double.parseDouble(p.getProperty("robot.gun.power", "-1.0"));
 				if (override >= 0.1 && override <= 3) {
 					Gun.power = override > 3 ? 3.0 : override;
 				}
@@ -185,10 +183,10 @@ public final class Mint extends RobotBase {
 		}
 		execute();
 	}
-	
+
 	public void doVictoryDance() {
-		//we want to make sort of a shamrock type victory dance
-		if((state.time & 1) == 0) {
+		// we want to make sort of a shamrock type victory dance
+		if ((state.time & 1) == 0) {
 			setScanColor(Color.CYAN);
 			setTurnBody(4);
 			setTurnGun(4);
@@ -197,7 +195,7 @@ public final class Mint extends RobotBase {
 			setScanColor(Color.GREEN);
 			setTurnBody(0);
 			setTurnGun(0);
-			setTurnRadar(Math.PI/16.0);
+			setTurnRadar(Math.PI / 16.0);
 		}
 	}
 }

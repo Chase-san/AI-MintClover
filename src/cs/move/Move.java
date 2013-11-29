@@ -148,17 +148,14 @@ public class Move {
 	private void doMovement() {
 		// for now, let's just do surfing movement
 		MoveWave wave = getBestWave();
-		
-		///////////////////////////
-		//XXX TEMPORARY
-		if(wave == null) {
-			if(lastLastState == null
-			|| lastState == null
-			|| lastState.targetPosition == null
-			|| state == null
-			|| state.targetPosition == null)
+
+		// /////////////////////////
+		// XXX TEMPORARY
+		if (wave == null) {
+			if (lastLastState == null || lastState == null || lastState.targetPosition == null || state == null
+					|| state.targetPosition == null)
 				return;
-			
+
 			wave = new MoveWave();
 			wave.setLocation(lastState.targetPosition);
 			wave.power = 2;
@@ -168,14 +165,14 @@ public class Move {
 			wave.fireTime = state.time - 1;
 			wave.formula = new MoveFormula(wave, lastLastState);
 		}
-		//XXX TEMPORARY
-		///////////////////////////
-		
+		// XXX TEMPORARY
+		// /////////////////////////
+
 		if (driver == null) {
 			driver = new NeneDriver();
 			driver.setBattlefieldSize(State.battlefieldWidth, State.battlefieldHeight);
 		}
-		
+
 		// direction and risk
 		double fRisk = calculateDirectionRisk(wave, state.orbitDirection);
 		double rRisk = calculateDirectionRisk(wave, -state.orbitDirection);
@@ -185,8 +182,7 @@ public class Move {
 			targetOrbitDirection = -state.orbitDirection;
 		}
 
-		driver.drive(state.position, lastState.targetPosition, state.bodyHeading, state.velocity,
-				targetOrbitDirection);
+		driver.drive(state.position, lastState.targetPosition, state.bodyHeading, state.velocity, targetOrbitDirection);
 
 		bot.setMaxVelocity(driver.getMaxVelocity());
 		bot.setTurnBody(driver.getAngleToTurn());
