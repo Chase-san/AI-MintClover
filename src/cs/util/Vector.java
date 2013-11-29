@@ -31,7 +31,7 @@ import java.awt.geom.Point2D;
 @SuppressWarnings("serial")
 public class Vector extends Point2D.Double implements Cloneable {
 	/**
-	 * Initializes it to 0,0
+	 * Initializes this vector to 0,0
 	 */
 	public Vector() {}
 

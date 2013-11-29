@@ -30,12 +30,12 @@ import java.awt.geom.Rectangle2D;
 @SuppressWarnings("serial")
 public class Rectangle extends Rectangle2D.Double {
 	/**
-	 * Initializes to zeroed Rectangle
+	 * Initializes this rectangle to (0,0) with a width and height of 0.
 	 */
 	public Rectangle() {}
 
 	/**
-	 * Initializes this with the specified coordinates
+	 * Initializes this rectangle with the specified coordinates and size.
 	 */
 	public Rectangle(final double x, final double y, final double w, final double h) {
 		super(x, y, w, h);
