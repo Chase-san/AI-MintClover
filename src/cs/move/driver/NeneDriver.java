@@ -247,7 +247,6 @@ public class NeneDriver implements Driver {
 			ny = py+direction * Math.sqrt(stickSq - stick*stick);
 			return Math.atan2(nx-px, ny-py);
 		}
-		System.err.println("Something is really messed up here... (check your wall smoothing code!)");
 		return angle;
 	}
 }

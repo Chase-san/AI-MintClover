@@ -47,7 +47,7 @@ public final class Mint extends RobotBase {
 	public Radar radar = new Radar(this);
 	public Gun gun = new Gun(this);
 	public Move move = new Move(this);
-	public static boolean doFire = false;
+	public static boolean doFire = true;
 	public static boolean doMove = true;
 
 	/**
@@ -184,5 +184,20 @@ public final class Mint extends RobotBase {
 			}
 		}
 		execute();
+	}
+	
+	public void doVictoryDance() {
+		//we want to make sort of a shamrock type victory dance
+		if((state.time & 1) == 0) {
+			setScanColor(Color.CYAN);
+			setTurnBody(4);
+			setTurnGun(4);
+			setTurnRadar(4);
+		} else {
+			setScanColor(Color.GREEN);
+			setTurnBody(0);
+			setTurnGun(0);
+			setTurnRadar(Math.PI/16.0);
+		}
 	}
 }
