@@ -39,6 +39,7 @@ import cs.TargetState;
 import cs.move.driver.Driver;
 import cs.move.driver.NeneDriver;
 import cs.util.Simulate;
+import cs.util.Tools;
 import cs.util.Vector;
 
 /**
@@ -243,30 +244,49 @@ public class Move {
 		return state.position;
 	}
 
+	private void reportBulletError(Bullet bullet, long time, boolean bulletCollision) {
+		//ERROR Reporting
+		Vector bulletPosition = new Vector(bullet.getX(),bullet.getY());
+		System.err.printf("Bullet%s Collision Wave Detection Error\n", bulletCollision ? "/Bullet" : "");
+		System.err.printf("\tBullet Power: %.4f\n",bullet.getPower());
+		System.err.printf("\tBullet Position: %.2f %.2f\n",bulletPosition.x,bulletPosition.y);
+		System.err.println("\t-Waves-");
+		for(MoveWave wave : waves) {
+			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
+			
+			System.err.printf("\t\tPower %.4f\n",wave.power);
+			for(int i=-2;i<=0;++i) {
+				double waveRadiusSq = wave.getRadius(time+i);
+				waveRadiusSq *= waveRadiusSq;
+				System.err.printf("\t\t\t%2d   Offset  %.2f\n",i,bulletWaveDistanceSq-waveRadiusSq);
+			}
+		}
+	}
+	
 	/**
 	 * Called when we are hit by a bullet.
 	 * @param e The Event
 	 */
 	public void onHitByBullet(final HitByBulletEvent e) {
-		Bullet b = e.getBullet();
 		long time = e.getTime();
+		Bullet bullet = e.getBullet();
+		Vector bulletPosition = new Vector(bullet.getX(),bullet.getY());
 		
-		final Vector bulletPosition = new Vector(b.getX(), b.getY());
 		Iterator<MoveWave> it = waves.iterator();
-		while (it.hasNext()) {
+		while(it.hasNext()) {
 			MoveWave wave = it.next();
-
-			//TODO check power?
+			if(Math.abs(wave.power - bullet.getPower()) > 0.001)
+				continue;
+			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
 			
-			double waveToBulletDistanceSq = wave.distanceSq(bulletPosition);
-			double waveRadius = wave.speed * (time - wave.fireTime);
-
-			if (Math.abs(waveToBulletDistanceSq - waveRadius * waveRadius) < 128) {
-				processCompletedWave(wave, b.getHeadingRadians());
+			double waveRadiusSq = Tools.sqr(wave.getRadius(time));
+			if(Math.abs(bulletWaveDistanceSq-waveRadiusSq) < 200) {
+				processCompletedWave(wave, bullet.getHeadingRadians());
 				it.remove();
 				return;
 			}
 		}
+		reportBulletError(bullet,time,false);
 	}
 	
 	/**
@@ -274,33 +294,31 @@ public class Move {
 	 * @param e The Event
 	 */
 	public void onBulletHitBullet(final BulletHitBulletEvent e) {
-		Bullet b = e.getBullet();
 		long time = e.getTime();
+		Bullet bullet = e.getHitBullet();
+		Vector bulletPosition = new Vector(bullet.getX(),bullet.getY());
 		
-		final Vector bulletPosition = new Vector(b.getX(), b.getY());
 		Iterator<MoveWave> it = waves.iterator();
-		while (it.hasNext()) {
+		while(it.hasNext()) {
 			MoveWave wave = it.next();
-
-			//TODO check power?
+			if(Math.abs(wave.power - bullet.getPower()) > 0.001)
+				continue;
+			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
 			
-			final double waveToBulletDistanceSq = wave.distanceSq(bulletPosition);
-			double waveRadius = wave.speed * (time - 1 - wave.fireTime);
-
-			if (Math.abs(waveToBulletDistanceSq - waveRadius * waveRadius) < 128) {
-				processCompletedWave(wave, b.getHeadingRadians());
+			double waveRadiusSq = Tools.sqr(wave.getRadius(time-1));
+			if(Math.abs(bulletWaveDistanceSq-waveRadiusSq) < 200) {
+				processCompletedWave(wave, bullet.getHeadingRadians());
 				it.remove();
 				return;
 			}
-			
-			waveRadius = wave.speed * (time - 2 - wave.fireTime);
-			if (Math.abs(waveToBulletDistanceSq - waveRadius * waveRadius) < 128) {
-				processCompletedWave(wave, b.getHeadingRadians());
+			waveRadiusSq = Tools.sqr(wave.getRadius(time-2));
+			if(Math.abs(bulletWaveDistanceSq-waveRadiusSq) < 200) {
+				processCompletedWave(wave, bullet.getHeadingRadians());
 				it.remove();
 				return;
 			}
 		}
-		
+		reportBulletError(bullet,time,true);
 	}
 
 	/**
