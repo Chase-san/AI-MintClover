@@ -188,15 +188,12 @@ public class Move {
 		sim.position.setLocation(state.position);
 		sim.heading = state.bodyHeading;
 		sim.velocity = state.velocity;
-		sim.direction = orbitDirection;
 
 		double startDistance = wave.distance(sim.position);
 		double predictedDistance = 0;
 		int intersectionTime = 0;
 
 		double risk = 0;
-
-		bot.g.setColor(Color.GREEN);
 		
 		wave.storeState();
 		wave.resetState();
@@ -213,7 +210,7 @@ public class Move {
 			driver.drive(sim.position, wave, sim.heading, sim.velocity, orbitDirection);
 			sim.angleToTurn = driver.getAngleToTurn();
 			sim.maxVelocity = driver.getMaxVelocity();
-			sim.direction = orbitDirection;
+			sim.direction = driver.getDirection();
 			sim.step();
 			
 			bot.g.drawRect((int)sim.position.x-2, (int)sim.position.y-2, 4, 4);
@@ -287,8 +284,13 @@ public class Move {
 		}
 
 		// direction and risk
-		double fRisk = calculateDirectionRisk(wave, state.orbitDirection); 
+		bot.g.setColor(Color.GREEN);
+		double fRisk = calculateDirectionRisk(wave, state.orbitDirection);
+		
+		bot.g.setColor(Color.RED);
 		double rRisk = calculateDirectionRisk(wave, -state.orbitDirection);
+		
+		
 
 		int targetOrbitDirection = state.orbitDirection;
 		if (fRisk > rRisk) {
