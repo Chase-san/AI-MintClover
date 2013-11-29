@@ -55,11 +55,11 @@ public class Tools {
 	 *            The targets orbit direction
 	 * @return The rotational distance to the nearest wall
 	 */
-	public static final double getWallDistance(final Vector target, final Rectangle field, final double targetDistance,
-			final double targetAngle, final int orbitDirection) {
+	public static final double getWallDistance(final Vector target, final double fieldWidth, final double fieldHeight,
+			final double targetDistance, final double targetAngle, final int orbitDirection) {
 		return Math.min(Math.min(Math.min(
-						distanceWest(field.getMaxY() - WALL_MARGIN - target.y, targetDistance, targetAngle - Math.PI / 2.0, orbitDirection),
-						distanceWest(field.getMaxX() - WALL_MARGIN - target.x, targetDistance, targetAngle + Math.PI, orbitDirection)),
+						distanceWest(fieldHeight - WALL_MARGIN - target.y, targetDistance, targetAngle - Math.PI / 2.0, orbitDirection),
+						distanceWest(fieldWidth - WALL_MARGIN - target.x, targetDistance, targetAngle + Math.PI, orbitDirection)),
 						distanceWest(target.y - WALL_MARGIN, targetDistance, targetAngle + Math.PI / 2.0, orbitDirection)),
 				distanceWest(target.x - WALL_MARGIN, targetDistance, targetAngle, orbitDirection));
 	}
