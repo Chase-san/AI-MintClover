@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<project name="SkunkWorks" default="package" basedir="." >
+	<!--
+	     Find it here: http://sourceforge.net/projects/sadun-util/
+	     put it in your ANT_HOME/lib
+	 -->
+	<taskdef name="pack" classname="org.sadun.util.ant.Pack" />
+	
+	<!--
+	     Find it here: http://www.yworks.com/en/products_yguard_about.html
+	     put it in your ANT_HOME/lib
+	 -->
+	<taskdef name="yguard" classname="com.yworks.yguard.YGuardTask" />
+
+	<!-- Your settings, all you need to change is here -->
+	<description>SkunkWorks Ant Build Script</description>
+	<property name="robot.classpath" value="cs" />
+	<property name="robot.name" value="Mint" />
+	<property name="obfuscate" value="true" />
+	<property name="addsource" value="false" />
+	
+	<property name="jardir" value="out" />
+	<property name="srcdir" value="src" />
+	<property name="bindir" value="bin" />
+	
+	<!-- Comment this out if you don't want to use the Eclipse Compiler for Java -->
+	<!-- <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/> -->
+	
+	<!-- Load version number from robot properties file -->
+	<property file="${srcdir}/${robot.classpath}/${robot.name}.properties" />
+	<property name="robocode.jar" location="C:/robocode/libs/robocode.jar" />
+	
+	<!-- Things to exclude from your obfuscation -->
+	<patternset id="obfuscate.exclude">
+		<include name="ags.**" />
+		<include name="wiki.**" />
+	</patternset>
+	
+	<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+	<!-- !!!!!!!!!!!!!!!  NO CONFIGURATION BEYOND THIS POINT  !!!!!!!!!!!!!!!!!!!! -->
+	<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+	
+	<!-- Compile the source java to class files -->
+	<target name="compile">
+		<!-- Delete all the current files so we can recompile with our compiler. -->
+		<delete>
+			<fileset dir="${basedir}" includes="**/*.class"/>
+		</delete>
+		
+		<!-- Compile with no debugging info -->
+		<javac srcdir="${srcdir}" destdir="${bindir}" includeAntRuntime="no" encoding="UTF-8"
+			fork="true" optimize="on" target="1.5" source="1.5" debug="off" compiler="javac1.5">
+			<classpath>
+				<pathelement path="${basedir}"/>
+				<pathelement location="${robocode.jar}"/>
+			</classpath>
+		</javac>
+	</target>
+
+	<!-- Package the robot for upload. -->
+	<target name="package" depends="compile">
+		<tstamp>
+			<format property="LONGSTAMP" pattern="yyyyMMdd-HHmm" locale="en"/>
+		</tstamp>
+
+		<!-- Setup directories and filenames -->
+		<mkdir dir="${jardir}"/>
+		<property name="backup.file" location="${jardir}/${robot.classname}_${robot.version}_${LONGSTAMP}.jar" />
+		<property name="release.file" location="${jardir}/${robot.classname}_${robot.version}.jar" />
+		<property name="tmp.file" location="${jardir}/~${robot.version}.jar" />
+
+		<!-- delete older copies of your files -->
+		<delete file="${backup.file}" failonerror="false" />
+		<delete file="${release.file}" failonerror="false" />
+
+		<!-- jar takes all your java and class files and packs them togeather -->
+		<jar duplicate="add" basedir="${srcdir}" destfile="${backup.file}" compress="true">
+			<include name="**/*.java" />
+			<include name="**/*.properties" />
+		</jar>
+		<jar duplicate="add" basedir="${bindir}" destfile="${backup.file}" update="true" compress="true">
+			<include name="**/*.class" />
+		</jar>
+		
+		<!-- "pack" task selects only the minimal set of classes needed to run the bot. 
+			 This can also be done with the "classfileset" task from ant-contrib -->
+		<!-- http://sadun-util.sourceforge.net/pack.html -->
+		<pack classes="${robot.classname}" targetjar="${tmp.file}" excludepkg="java,javax,sun,robocode">
+			<classpath path="${bindir}" />
+			<classpath location="${robocode.jar}" />
+			<!-- A bit of magic so we don't have to type out our property files.
+			     Bonus, it includes those in the data folder aswell. -->
+			<additionalfileset dir="${srcdir}">
+				<filename name="**/*.properties" />
+			</additionalfileset>
+		</pack>
+
+		<antcall target="includeSource" />
+		<antcall target="doObfuscate" />
+		<antcall target="dontObfuscate" />
+		
+		<!-- Cleanup your unneeded tmp jar -->
+		<delete file="${tmp.file}" failonerror="false" />
+	</target>
+	
+	<!-- Include source in release jar. -->
+	<target name="includeSource" if="${addsource}" unless="${obfuscate}">
+		<echo>Adding source to output jar.</echo>
+		<jar duplicate="add" basedir="${srcdir}" destfile="${tmp.file}" update="true" compress="true">
+			<include name="**/*.java" />
+			<include name="**/*.properties" />
+		</jar>
+	</target>
+	
+	<!-- Skip Obfuscation of release jar. -->
+	<target name="dontObfuscate" unless="${obfuscate}">
+		<echo>Skipping Obfuscation</echo>
+		<move file="${tmp.file}" tofile="${release.file}" />
+	</target>
+	
+	<!-- Obfuscate release jar. -->
+	<!-- http://www.yworks.com/products/yguard/yguard_ant_howto.html -->
+	<target name="doObfuscate" if="${obfuscate}">
+		<echo>Obfuscating Jar</echo>
+		<yguard>
+			<inoutpair in="${tmp.file}" out="${release.file}" />
+			<externalclasses>
+				<pathelement location="${robocode.jar}"/>
+			</externalclasses>
+			<rename>
+				<property name="error-checking" value="pedantic" />
+				<property name="naming-scheme" value="small" />
+				<property name="language-conformity" value="illegal" />
+				<property name="overload-enabled" value="true" />
+				<keep runtimeinvisibleannotations="remove" runtimeinvisibleparameterannotations="remove">
+					<class name="${robot.classname}" methods="public" />
+					
+					<!-- Put here the classes you don't want to obfuscate -->
+					<class>
+						<patternset refid="obfuscate.exclude" />
+					</class>
+				</keep>
+			</rename>
+		</yguard>
+	</target>
+</project>

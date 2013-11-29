@@ -1,0 +1,11 @@
+#################
+## Eclipse
+#################
+
+.project
+.metadata
+bin/
+out/
+.classpath
+.settings/
+*log.xml
