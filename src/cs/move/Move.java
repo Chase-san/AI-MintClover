@@ -23,6 +23,7 @@
 package cs.move;
 
 import java.awt.Color;
+import java.awt.geom.Line2D;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +34,7 @@ import robocode.Bullet;
 import robocode.BulletHitBulletEvent;
 import robocode.HitByBulletEvent;
 import robocode.Rules;
+import robocode.util.Utils;
 import cs.Mint;
 import cs.State;
 import cs.TargetState;
@@ -70,20 +72,117 @@ public class Move {
 		bot = cntr;
 	}
 
-	private double calculateWaveRisk(final MoveWave wave) {
+	/**
+	 * Calculate the risk of a given wave at the end position.
+	 * @param wave
+	 * @param lastPosition
+	 * @return
+	 */
+	private double calculateWaveRisk(final MoveWave wave, final Vector lastPosition) {
 		// check risk
 		double centerGF = (wave.minFactor + wave.maxFactor) / 2.0;
 		double waveRisk = 0;
 		List<Entry<MoveFormula>> list = tree.nearestNeighbor(wave.formula.getArray(), 32, false);
 		for (final Entry<MoveFormula> e : list) {
-			double subRisk = 1.0 / (1.0 + Math.abs(e.value.guessfactor - centerGF));
+			double gf = e.value.guessfactor;
+			double subRisk = 0.2 / (1.0 + Math.abs(gf - centerGF));
+			if(wave.minFactor < gf && wave.maxFactor > gf)
+				subRisk += 0.8;
 			double weight = 1.0 / (1.0 + e.distance);
 			waveRisk += subRisk * weight;
 		}
-		waveRisk /= list.size();
-		return waveRisk;
+		return waveRisk / list.size();
+	}
+	
+	private void doMinimalRiskMovement() {
+		//Do minimal risk movement
+		Vector target = state.position.clone();
+		Vector bestTarget = state.position;
+		double angle = 0;
+		
+		double bestRisk = calculateWavelessRisk(bestTarget);
+		double enemyDistance = state.position.distance(lastState.targetPosition);
+
+		//a little dynamic distancing
+		//enemyDistance += 18*max((enemyDistance-36-50)/100.0,1.0);
+		enemyDistance += Tools.limit(-18, -24.48+0.18*enemyDistance ,18);
+
+		while(angle < Math.PI*2) {
+			double targetDistance = Math.min(200,enemyDistance);
+
+			target.setLocationAndProject(state.position, angle, targetDistance);
+			if(State.wavelessField.contains(target)) {
+				double risk = calculateWavelessRisk(target);
+
+				if(risk < bestRisk) {
+					bestRisk = risk;
+					bestTarget = target.clone();
+				}
+			}
+			angle += Math.PI/32.0;
+		}
+
+		double travelAngle = state.position.angleTo(bestTarget);
+
+		double forward = state.position.distance(bestTarget);
+
+		double angleToTurn = Utils.normalRelativeAngle(travelAngle - state.bodyHeading);
+		int direction = 1;
+
+		if(Math.abs(angleToTurn) > Math.PI/2.0) {
+			angleToTurn = Utils.normalRelativeAngle(angleToTurn - Math.PI);
+			direction = -1;
+		}
+
+		//Slow down so we do not ram head long into the walls and can instead turn to avoid them
+		double maxVelocity = Rules.MAX_VELOCITY;
+
+		
+		if(!State.battlefield.contains(state.position.clone().project(state.bodyHeading, state.velocity*3.25)))
+			maxVelocity = 0;
+
+		if(!State.battlefield.contains(state.position.clone().project(state.bodyHeading, state.velocity*5)))
+			maxVelocity = 4;
+
+		if(angleToTurn > 0.7 && state.velocity < 7) {
+			maxVelocity = 0;
+		}
+
+		bot.setMaxVelocity(maxVelocity);
+		bot.setTurnBody(angleToTurn);
+		bot.setMove(forward*direction);
+		
+		updateNextPosition(angleToTurn,maxVelocity,direction);
+	}
+	
+	private double calculateWavelessRisk(Vector pos) {
+		double risk = 100.0/pos.distanceSq(lastState.targetPosition);
+		
+		for(double[] edge : State.wavelessField.getEdges()) {
+			risk += 5.0/(1.0+Line2D.ptSegDistSq(edge[0], edge[1], edge[2], edge[3], pos.x, pos.y));
+		}
+
+		/*
+		 * get points between enemy location and corner and add risk!!!!
+		 * these are bad places to be! Our hitbox is larger here if nothing else!
+		 */
+		for(double[] corner : State.wavelessField.getCorners()) {
+			corner[0] = (corner[0]+lastState.targetPosition.x)/2.0;
+			corner[1] = (corner[1]+lastState.targetPosition.y)/2.0;
+			if(lastState.targetPosition.distanceSq(corner[0], corner[1]) < 22500) {
+				risk += 5.0/(1.0+pos.distanceSq(corner[0], corner[1]));
+			}
+		}
+		
+		return risk;
 	}
 
+	/**
+	 * Calculate the risk of a given direction.
+	 * @param wave
+	 * @param orbitDirection
+	 * @return
+	 */
 	private double calculateDirectionRisk(final MoveWave wave, final int orbitDirection) {
 		Simulate sim = new Simulate();
 		sim.position.setLocation(state.position);
@@ -102,7 +201,7 @@ public class Move {
 		for (int timeOffset = 0; timeOffset < 110; ++timeOffset) {
 			wave.update(state.time + timeOffset, sim.position);
 			if (wave.isCompleted()) {
-				risk += calculateWaveRisk(wave);
+				risk += calculateWaveRisk(wave, sim.position);
 				break;
 			} else if (wave.isIntersected()) {
 				predictedDistance += wave.distance(sim.position);
@@ -143,6 +242,29 @@ public class Move {
 			waves.add(wave);
 		}
 	}
+	
+	private void doWavelessMovement() {
+		final int initialTurns = (int)Math.ceil(3.0/State.coolingRate)+4;
+		double safeTurns = state.gunHeat/State.coolingRate;
+		if(state.time < initialTurns) {
+			/* Do we have enough time to move around before they can start firing? */
+			if(safeTurns > 4) {
+				doMinimalRiskMovement();
+			} else {
+				driver.drive(state.position, lastState.targetPosition,
+						state.bodyHeading, state.velocity, state.orbitDirection);
+				
+				bot.setTurnBody(driver.getAngleToTurn());
+				bot.setMaxVelocity(0);
+				bot.setMove(0);
+
+				updateNextPosition(driver.getAngleToTurn(),0,1);
+			}
+		} else {
+			doMinimalRiskMovement();
+		}
+		
+	}
 
 	/**
 	 * Perform movement.
@@ -151,24 +273,10 @@ public class Move {
 		// for now, let's just do surfing movement
 		MoveWave wave = getBestWave();
 
-		// /////////////////////////
-		// XXX TEMPORARY
 		if (wave == null) {
-			if (lastLastState == null || lastState == null || lastState.targetPosition == null || state == null
-					|| state.targetPosition == null)
-				return;
-
-			wave = new MoveWave();
-			wave.setLocation(lastState.targetPosition);
-			wave.power = 2;
-			wave.speed = Rules.getBulletSpeed(wave.power);
-			wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.orbitDirection;
-			wave.directAngle = lastLastState.targetAngle + Math.PI;
-			wave.fireTime = state.time - 1;
-			wave.formula = new MoveFormula(wave, lastLastState);
+			doWavelessMovement();
+			return;
 		}
-		// XXX TEMPORARY
-		// /////////////////////////
 
 		if (driver == null) {
 			driver = new NeneDriver();
@@ -176,7 +284,7 @@ public class Move {
 		}
 
 		// direction and risk
-		double fRisk = calculateDirectionRisk(wave, state.orbitDirection);
+		double fRisk = calculateDirectionRisk(wave, state.orbitDirection); 
 		double rRisk = calculateDirectionRisk(wave, -state.orbitDirection);
 
 		int targetOrbitDirection = state.orbitDirection;
@@ -190,7 +298,7 @@ public class Move {
 		bot.setTurnBody(driver.getAngleToTurn());
 		bot.setMove(100 * driver.getDirection());
 
-		updateNextPosition();
+		updateNextPosition(driver.getAngleToTurn(),driver.getMaxVelocity(),driver.getDirection());
 	}
 
 	/**
@@ -336,12 +444,12 @@ public class Move {
 	/**
 	 * Simulates movement to determine the next position.
 	 */
-	private void updateNextPosition() {
+	private void updateNextPosition(double angle, double maxVelocity, int direction) {
 		Simulate sim = new Simulate();
 		sim.position = state.position.clone();
-		sim.angleToTurn = driver.getAngleToTurn();
-		sim.maxVelocity = driver.getMaxVelocity();
-		sim.direction = driver.getDirection();
+		sim.angleToTurn = angle;
+		sim.maxVelocity = maxVelocity;
+		sim.direction = direction;
 		sim.step();
 
 		nextPosition = sim.position;

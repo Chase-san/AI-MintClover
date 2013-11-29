@@ -40,6 +40,7 @@ public abstract class State {
 	public static final int CLOCKWISE = 1;
 	public static final int COUNTERCLOCKWISE = -1;
 	public static Rectangle battlefield;
+	public static Rectangle wavelessField;
 	public static double coolingRate;
 	public static int battlefieldHeight;
 	public static int battlefieldWidth;

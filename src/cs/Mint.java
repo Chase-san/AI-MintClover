@@ -59,6 +59,7 @@ public final class Mint extends RobotBase {
 		State.battlefieldHeight = (int) getBattleFieldHeight();
 		State.coolingRate = getGunCoolingRate();
 		State.battlefield = new Rectangle(18, 18, State.battlefieldWidth - 36, State.battlefieldHeight - 36);
+		State.wavelessField = new Rectangle(30, 30, State.battlefieldWidth - 60, State.battlefieldHeight - 60);
 		loadProperties();
 	}
 
