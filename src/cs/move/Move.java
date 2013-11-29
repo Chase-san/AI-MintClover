@@ -30,6 +30,7 @@ import java.util.List;
 import ags.utils.KdTree;
 import ags.utils.KdTree.Entry;
 import robocode.Bullet;
+import robocode.BulletHitBulletEvent;
 import robocode.HitByBulletEvent;
 import robocode.Rules;
 import cs.Mint;
@@ -277,6 +278,10 @@ public class Move {
 		 * We have to pass the time, since by this point our state is still the
 		 * one from last turn.
 		 */
+		handleBullet(e.getBullet(), e.getTime());
+	}
+	
+	public void onBulletHitBullet(final BulletHitBulletEvent e) {
 		handleBullet(e.getBullet(), e.getTime());
 	}
 

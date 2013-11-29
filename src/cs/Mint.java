@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import robocode.BulletHitBulletEvent;
 import robocode.BulletHitEvent;
 import robocode.Event;
 import robocode.HitByBulletEvent;
@@ -136,6 +137,15 @@ public final class Mint extends RobotBase {
 		state.update(e);
 		if (doMove) {
 			move.onHitByBullet(e);
+		}
+	}
+	
+	/**
+	 * Called when one of our bullets collide with an enemies bullet.
+	 */
+	public void onBulletHitBullet(final BulletHitBulletEvent e) {
+		if (doMove) {
+			move.onBulletHitBullet(e);
 		}
 	}
 
