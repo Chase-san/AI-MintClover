@@ -54,8 +54,8 @@ public class Move {
 	static {
 		tree = new KdTree.WeightedSqrEuclid<MoveFormula>(MoveFormula.weights.length, 0);
 		tree.setWeights(MoveFormula.weights);
+		
 		// seed the tree (just one, a basic avoid head on targeting)
-
 		MoveFormula tmp = new MoveFormula();
 		tree.addPoint(tmp.getArray(), tmp);
 	}
@@ -196,6 +196,8 @@ public class Move {
 
 		double risk = 0;
 
+		bot.g.setColor(Color.GREEN);
+		
 		wave.storeState();
 		wave.resetState();
 		for (int timeOffset = 0; timeOffset < 110; ++timeOffset) {
@@ -213,6 +215,8 @@ public class Move {
 			sim.maxVelocity = driver.getMaxVelocity();
 			sim.direction = orbitDirection;
 			sim.step();
+			
+			bot.g.drawRect((int)sim.position.x-2, (int)sim.position.y-2, 4, 4);
 		}
 
 		wave.restoreState();
@@ -275,11 +279,6 @@ public class Move {
 			driver.setBattlefieldSize(State.battlefieldWidth, State.battlefieldHeight);
 		}
 		
-		if(lastState == null || lastState.targetPosition == null) {
-			//nothing we can do here.
-			return;
-		}
-		
 		MoveWave wave = getBestWave();
 		
 		if (wave == null) {
@@ -317,8 +316,8 @@ public class Move {
 		lastLastState = lastState;
 		lastState = this.state;
 		this.state = state;
-
-		if (lastLastState == null) {
+		
+		if (lastState == null || lastState.targetPosition == null || lastLastState == null) {
 			return;
 		}
 
@@ -441,7 +440,7 @@ public class Move {
 	 */
 	private void processCompletedWave(final MoveWave w, double angle) {
 		final MoveFormula data = w.formula;
-		data.guessfactor = angle / w.escapeAngle;
+		data.guessfactor = Utils.normalRelativeAngle(angle - w.directAngle) / w.escapeAngle;
 		tree.addPoint(data.getArray(), data);
 	}
 
@@ -451,6 +450,9 @@ public class Move {
 	private void updateNextPosition(double angle, double maxVelocity, int direction) {
 		Simulate sim = new Simulate();
 		sim.position = state.position.clone();
+		sim.velocity = state.velocity;
+		sim.heading = state.bodyHeading;
+		
 		sim.angleToTurn = angle;
 		sim.maxVelocity = maxVelocity;
 		sim.direction = direction;
@@ -463,10 +465,9 @@ public class Move {
 	 * Update waves, remove them if needed.
 	 */
 	private void updateWaves() {
-		Iterator<MoveWave> it = waves.iterator();
-
 		bot.g.setColor(Color.WHITE);
 
+		Iterator<MoveWave> it = waves.iterator();
 		while (it.hasNext()) {
 			MoveWave wave = it.next();
 
