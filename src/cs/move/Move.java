@@ -244,45 +244,63 @@ public class Move {
 	}
 
 	/**
-	 * Processes a bullet that we have detected by it colliding with us.
-	 * 
-	 * @param b
-	 * @param time
+	 * Called when we are hit by a bullet.
+	 * @param e The Event
 	 */
-	private void handleBullet(Bullet b, long time) {
+	public void onHitByBullet(final HitByBulletEvent e) {
+		Bullet b = e.getBullet();
+		long time = e.getTime();
+		
 		final Vector bulletPosition = new Vector(b.getX(), b.getY());
 		Iterator<MoveWave> it = waves.iterator();
 		while (it.hasNext()) {
 			MoveWave wave = it.next();
 
-			double dSq = wave.distanceSq(bulletPosition);
+			//TODO check power?
+			
+			double waveToBulletDistanceSq = wave.distanceSq(bulletPosition);
+			double waveRadius = wave.speed * (time - wave.fireTime);
 
-			double rad0 = wave.speed * (time - wave.fireTime);
-
-			if (Math.abs(dSq - rad0 * rad0) < 128) {
+			if (Math.abs(waveToBulletDistanceSq - waveRadius * waveRadius) < 128) {
 				processCompletedWave(wave, b.getHeadingRadians());
 				it.remove();
 				return;
 			}
 		}
-		System.out.println("Error on wave detection.");
-	}
-
-	/**
-	 * Called when we are hit by a bullet.
-	 * 
-	 * @param e
-	 */
-	public void onHitByBullet(final HitByBulletEvent e) {
-		/*
-		 * We have to pass the time, since by this point our state is still the
-		 * one from last turn.
-		 */
-		handleBullet(e.getBullet(), e.getTime());
 	}
 	
+	/**
+	 * Called when one of our bullets hits one of the enemies bullets.
+	 * @param e The Event
+	 */
 	public void onBulletHitBullet(final BulletHitBulletEvent e) {
-		handleBullet(e.getBullet(), e.getTime());
+		Bullet b = e.getBullet();
+		long time = e.getTime();
+		
+		final Vector bulletPosition = new Vector(b.getX(), b.getY());
+		Iterator<MoveWave> it = waves.iterator();
+		while (it.hasNext()) {
+			MoveWave wave = it.next();
+
+			//TODO check power?
+			
+			final double waveToBulletDistanceSq = wave.distanceSq(bulletPosition);
+			double waveRadius = wave.speed * (time - 1 - wave.fireTime);
+
+			if (Math.abs(waveToBulletDistanceSq - waveRadius * waveRadius) < 128) {
+				processCompletedWave(wave, b.getHeadingRadians());
+				it.remove();
+				return;
+			}
+			
+			waveRadius = wave.speed * (time - 2 - wave.fireTime);
+			if (Math.abs(waveToBulletDistanceSq - waveRadius * waveRadius) < 128) {
+				processCompletedWave(wave, b.getHeadingRadians());
+				it.remove();
+				return;
+			}
+		}
+		
 	}
 
 	/**
