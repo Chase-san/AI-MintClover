@@ -108,7 +108,7 @@ public class Radar {
 			doInit(state);
 			isFirst = false;
 		} else if (state.targetPosition != null) {
-			// don't bother if we don't know where the enemy is
+			// don't bother if we don't know where the enemy is yet
 			doExecute(state);
 		}
 	}

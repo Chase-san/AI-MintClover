@@ -215,9 +215,9 @@ public class Tools {
 		final double diffy = cy - lay;
 		double dirx = lbx - lax;
 		double diry = lby - lay;
-		final double l = Math.sqrt(dirx * dirx + diry * diry);
-		dirx /= l;
-		diry /= l;
+		final double length = Math.sqrt(dirx * dirx + diry * diry);
+		dirx /= length;
+		diry /= length;
 		final double a0 = diffx * diffx + diffy * diffy - r * r;
 		final double a1 = diffx * dirx + diffy * diry;
 		double discr = a1 * a1 - a0;
@@ -227,17 +227,19 @@ public class Tools {
 			discr = Math.sqrt(discr);
 			final double m1 = a1 - discr;
 			final double m2 = a1 + discr;
-			if (m1 > 0 && m1 * m1 < lengthSq && m2 > 0 && m2 * m2 < lengthSq)
+			if (m1 > 0 && m1 * m1 < lengthSq && m2 > 0 && m2 * m2 < lengthSq) {
 				return new double[] { lax + m1 * dirx, lay + m1 * diry, lax + m2 * dirx, lay + m2 * diry };
-			else if (m1 > 0 && m1 * m1 < lengthSq)
+			} else if (m1 > 0 && m1 * m1 < lengthSq) {
 				return new double[] { lax + m1 * dirx, lay + m1 * diry };
-			else if (m2 > 0 && m2 * m2 < lengthSq)
+			} else if (m2 > 0 && m2 * m2 < lengthSq) {
 				return new double[] { lax + m2 * dirx, lay + m2 * diry };
+			}
 		} else if (discr == 0) {
 			final double lengthSq = (lbx - lax) * (lbx - lax) + (lby - lay) * (lby - lay);
 			/* We have ourselves a tangent */
-			if (a1 > 0 && a1 * a1 < lengthSq)
+			if (a1 > 0 && a1 * a1 < lengthSq) {
 				return new double[] { lax + a1 * dirx, lay + a1 * diry };
+			}
 		}
 		return new double[0];
 	}
