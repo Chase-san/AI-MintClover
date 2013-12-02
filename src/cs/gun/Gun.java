@@ -126,11 +126,14 @@ public class Gun {
 
 		double bulletPower = 1.95;
 
-		if (state.targetDistance < 140)
-			bulletPower = 2.95;
+		if (state.targetDistance <= 160) {
+			bulletPower = (int)(state.targetDistance*-1/4.0+59);
+			bulletPower = Math.min(29, bulletPower)/10.0;
+			bulletPower += 0.05;
+		}
 
-		bulletPower = Math.min(state.energy / 4.0, bulletPower);
 		bulletPower = Math.min(state.targetEnergy / 4.0, bulletPower);
+		bulletPower = Math.max(0.1, bulletPower);
 
 		return bulletPower;
 	}
@@ -169,10 +172,10 @@ public class Gun {
 			return;
 		this.state = state;
 
-		final double angle = next.angleTo(state.targetPosition);
-		// Update our current waves
 		updateWaves();
+		
 		// calculate some basic gun stuff
+		final double angle = next.angleTo(state.targetPosition);
 		final double bulletPower = getBulletPower();
 		final GunWave wave = createWave(bulletPower, angle);
 		wave.data = new GunFormula(wave, state);
