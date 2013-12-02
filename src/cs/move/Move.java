@@ -67,6 +67,8 @@ public class Move {
 	private TargetState lastLastState;
 	private LinkedList<MoveWave> waves = new LinkedList<MoveWave>();
 	private Vector nextPosition = null;
+	
+	private double targetGunHeat;
 
 	public Move(final Mint cntr) {
 		bot = cntr;
@@ -224,6 +226,38 @@ public class Move {
 
 		return risk * distanceRisk;
 	}
+	
+	private void detectHeatWaves() {
+		if(targetGunHeat <= 2 * State.coolingRate && targetGunHeat > State.coolingRate) {
+			//simulate enemy position
+			Simulate sim = new Simulate();
+			sim.position.setLocation(state.targetPosition);
+			sim.velocity = state.targetVelocity;
+			sim.heading = state.targetHeading;
+			sim.angleToTurn = state.targetHeadingDelta;
+			sim.direction = (int)Math.signum(sim.velocity);
+			//if the target is slowing down
+			if(state.targetVelocityDelta < 0)
+				sim.direction = -sim.direction;
+			sim.step();
+			
+			MoveWave wave = new MoveWave();
+			wave.fake = true;
+			wave.setLocation(sim.position);
+			//TODO use kNN to get better power
+			wave.power = 3;
+			wave.speed = Rules.getBulletSpeed(wave.power);
+			wave.directAngle = wave.angleTo(state.position);
+			//hopefully our orbit direction will hold
+			wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.orbitDirection;
+			//TODO test this without the -1 time change
+			wave.fireTime = state.time - 1;
+			
+			waves.add(wave);
+		}
+		
+		targetGunHeat -= State.coolingRate;
+	}
 
 	/**
 	 * Detect enemy waves.
@@ -231,6 +265,8 @@ public class Move {
 	private void detectWaves() {
 		double energyDelta = lastState.targetEnergy - state.targetEnergy;
 		if (energyDelta > 0 && energyDelta <= 3.0) {
+			targetGunHeat = Rules.getGunHeat(energyDelta);
+			
 			MoveWave wave = new MoveWave();
 			wave.setLocation(lastState.targetPosition);
 			wave.power = energyDelta;
@@ -311,7 +347,6 @@ public class Move {
 	 *            The current calculated system state.
 	 */
 	public void execute(final TargetState state) {
-
 		// check to see if the enemy fired
 		lastLastState = lastState;
 		lastState = this.state;
@@ -321,14 +356,15 @@ public class Move {
 			return;
 		}
 
+		//detectHeatWaves();
 		detectWaves();
 		updateWaves();
 		doMovement();
 	}
 
 	/**
-	 * Determine the best wave to surf. TODO Make higher power bullets a higher
-	 * risk.
+	 * Determine the best wave to surf.
+	 * TODO Make higher power bullets a higher risk.
 	 */
 	private MoveWave getBestWave() {
 		MoveWave wave = null;
@@ -386,7 +422,7 @@ public class Move {
 		Iterator<MoveWave> it = waves.iterator();
 		while(it.hasNext()) {
 			MoveWave wave = it.next();
-			if(Math.abs(wave.power - bullet.getPower()) > 0.001)
+			if(wave.fake || Math.abs(wave.power - bullet.getPower()) > 0.001)
 				continue;
 			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
 			
@@ -412,7 +448,7 @@ public class Move {
 		Iterator<MoveWave> it = waves.iterator();
 		while(it.hasNext()) {
 			MoveWave wave = it.next();
-			if(Math.abs(wave.power - bullet.getPower()) > 0.001)
+			if(wave.fake || Math.abs(wave.power - bullet.getPower()) > 0.001)
 				continue;
 			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
 			
@@ -464,20 +500,28 @@ public class Move {
 	 * Update waves, remove them if needed.
 	 */
 	private void updateWaves() {
-		bot.g.setColor(Color.WHITE);
+		
 
 		Iterator<MoveWave> it = waves.iterator();
 		while (it.hasNext()) {
 			MoveWave wave = it.next();
 
 			double r = wave.getRadius(state.time);
-
+			if(wave.isFake()) {
+				bot.g.setColor(Color.RED);
+			} else {
+				bot.g.setColor(Color.WHITE);
+			}
 			bot.g.draw(new java.awt.geom.Ellipse2D.Double(wave.x - r, wave.y - r, r * 2, r * 2));
 
 			wave.update(state.time, state.position);
 
 			if (wave.isCompleted()) {
 				// TODO add flattener here
+				it.remove();
+			} else if(wave.isFake() && state.time - wave.fireTime > 3) {
+				//after this the fake wave is no longer relevant
+				//TODO but only if the enemy is still alive
 				it.remove();
 			}
 		}

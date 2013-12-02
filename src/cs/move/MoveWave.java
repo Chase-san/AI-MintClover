@@ -29,6 +29,7 @@ import cs.util.Wave;
 public class MoveWave extends Wave {
 	public double lastETA;
 	public MoveFormula formula;
+	public boolean fake = false;
 
 	private double sMnF = 0;
 	private double sMxF = 0;
@@ -59,6 +60,10 @@ public class MoveWave extends Wave {
 		maxFactor = sMxF;
 		intersected = sI;
 		completed = sC;
+	}
+	
+	public boolean isFake() {
+		return fake;
 	}
 
 	public double getETA(Vector target, long time) {
