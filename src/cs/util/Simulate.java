@@ -77,40 +77,25 @@ public final class Simulate {
 	 * accordingly
 	 */
 	public void step() {
-		step(true);
-	}
-
-	// public void stepPrecise() {
-	// step(true);
-	// }
-
-	private void step(boolean precise) {
-		// //////////////
+		////////////////
 		// Heading
 		double lastHeading = heading;
 		double turnRate = Rules.getTurnRateRadians(Math.abs(velocity));
-		// double turn = Math.min(turnRate, Math.max(angleToTurn, -turnRate));
 		double turn = Tools.limit(-turnRate, angleToTurn, turnRate);
 		heading = Utils.normalNearAbsoluteAngle(heading + turn);
 		angleToTurn -= turn;
 
-		// //////////////
+		////////////////
 		// Movement
 		if (direction != 0 || velocity != 0.0) {
 			// //////////////
 			// Velocity
 			velocity += getAcceleration();
 
-			// //////////////
+			////////////////
 			// Position
-			if (precise) {
-				position.x += Math.sin(heading) * velocity;
-				position.y += Math.cos(heading) * velocity;
-			} else {
-				// TODO
-				// position.x += sin(heading) * velocity;
-				// position.y += cos(heading) * velocity;
-			}
+			position.x += Math.sin(heading) * velocity;
+			position.y += Math.cos(heading) * velocity;
 		}
 
 		headingDelta = Utils.normalRelativeAngle(heading - lastHeading);

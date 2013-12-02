@@ -43,7 +43,7 @@ public class MoveFormula {
 		guessfactor = 0;
 	}
 
-	public MoveFormula(MoveWave wave, TargetState state) {
+	public MoveFormula(TargetState state) {
 		point = new double[] {
 				Math.abs(state.lateralVelocity) / 8.0,
 				(state.advancingVelocity + 8.0) / 16.0,

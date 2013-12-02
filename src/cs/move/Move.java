@@ -238,7 +238,7 @@ public class Move {
 			wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.orbitDirection;
 			wave.directAngle = lastLastState.targetAngle + Math.PI;
 			wave.fireTime = state.time - 1;
-			wave.formula = new MoveFormula(wave, lastLastState);
+			wave.formula = new MoveFormula(lastLastState);
 
 			waves.add(wave);
 		}
@@ -290,8 +290,6 @@ public class Move {
 		bot.g.setColor(Color.RED);
 		double rRisk = calculateDirectionRisk(wave, -state.orbitDirection);
 		
-		
-
 		int targetOrbitDirection = state.orbitDirection;
 		if (fRisk > rRisk) {
 			targetOrbitDirection = -state.orbitDirection;
@@ -454,7 +452,6 @@ public class Move {
 		sim.position = state.position.clone();
 		sim.velocity = state.velocity;
 		sim.heading = state.bodyHeading;
-		
 		sim.angleToTurn = angle;
 		sim.maxVelocity = maxVelocity;
 		sim.direction = direction;
