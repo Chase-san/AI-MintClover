@@ -60,8 +60,10 @@ public class TargetState extends State {
 	public double lateralVelocity;
 	public int orbitDirection;
 
-	public TargetState(StatusEvent e, State lastState) {
+	public TargetState(StatusEvent e, TargetState lastState) {
 		super(e, lastState);
+		timeSinceOrbitalDirectionChange = lastState.timeSinceOrbitalDirectionChange;
+		targetTimeSinceVelocityChange = lastState.targetTimeSinceVelocityChange;
 	}
 
 	public void update(final BulletHitEvent e) {

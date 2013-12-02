@@ -69,12 +69,10 @@ public class SeraphimDriver implements Driver {
 	public void drive(Vector position, Vector center, double heading, double velocity, int orbitDirection) {
 		center.setLocation(Tools.limit(120, center.x, fw - 120), Tools.limit(120, center.y, fw - 120));
 
-		direction = orbitDirection;
-
 		double directAngle = center.angleTo(position);
-		double moveAngle = directAngle + (Math.PI / 2.0) * direction;
+		double moveAngle = directAngle + (Math.PI / 2.0) * orbitDirection;
 		double distance = position.distance(center);
-		double distModifier = ((distance - bestDist) / bestDist) * direction;
+		double distModifier = ((distance - bestDist) / bestDist) * orbitDirection;
 
 		if (Math.abs(velocity) < 1e-4 || Math.abs(distance - bestDist) < 50)
 			distModifier = 0;
@@ -89,14 +87,15 @@ public class SeraphimDriver implements Driver {
 			if (tmp.x > WALL_MARGIN && tmp.x < fw - WALL_MARGIN && tmp.y > WALL_MARGIN && tmp.y < fh - WALL_MARGIN)
 				break;
 
-			moveAngle += 0.05 * direction;
+			moveAngle += 0.05 * orbitDirection;
 		}
 
+		direction = 1;
 		/* Determine the best direction */
 		angleToTurn = Utils.normalRelativeAngle(moveAngle - heading);
 		if (Math.abs(angleToTurn) > Math.PI / 2.0) {
 			angleToTurn = Utils.normalRelativeAngle(angleToTurn + Math.PI);
-			direction = -direction;
+			direction = -1;
 		}
 
 		/* If the turn is to large, slow down a bit */
