@@ -62,8 +62,6 @@ public class TargetState extends State {
 
 	public TargetState(StatusEvent e, TargetState lastState) {
 		super(e, lastState);
-		timeSinceOrbitalDirectionChange = lastState.timeSinceOrbitalDirectionChange;
-		targetTimeSinceVelocityChange = lastState.targetTimeSinceVelocityChange;
 	}
 
 	public void update(final BulletHitEvent e) {
@@ -101,12 +99,14 @@ public class TargetState extends State {
 		if (lastState != null) {
 			targetHeadingDelta = targetHeading - lastState.targetHeading;
 			targetVelocityDelta = targetVelocity - lastState.targetVelocity;
-
+			
+			timeSinceOrbitalDirectionChange = lastState.timeSinceOrbitalDirectionChange;
 			++timeSinceOrbitalDirectionChange;
 			if (lastState.orbitDirection != orbitDirection) {
 				timeSinceOrbitalDirectionChange = 0;
 			}
 
+			targetTimeSinceVelocityChange = lastState.targetTimeSinceVelocityChange;
 			++targetTimeSinceVelocityChange;
 			if (Math.abs(targetLateralVelocity - lastState.targetLateralVelocity) > 0.5) {
 				targetTimeSinceVelocityChange = 0;
