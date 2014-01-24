@@ -126,7 +126,9 @@ public final class Mint extends RobotBase {
 	 */
 	@Override
 	public void onBulletHit(final BulletHitEvent e) {
-		state.update(e);
+		if(lastState != null) {
+			lastState.update(e);
+		}
 	}
 
 	/**
@@ -135,7 +137,9 @@ public final class Mint extends RobotBase {
 	@Override
 	public void onHitByBullet(final HitByBulletEvent e) {
 		// TODO check if this is needed
-		state.update(e);
+		if(lastState != null) {
+			lastState.update(e);
+		}
 		if (doMove) {
 			move.onHitByBullet(e);
 		}
