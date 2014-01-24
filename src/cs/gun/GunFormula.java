@@ -49,7 +49,8 @@ public class GunFormula {
 				Math.min(1.5, Tools.orbitalWallDistance(wave, state.targetPosition, wave.power,
 						-state.targetOrbitDirection, State.battlefield)) / 1.5,
 				Math.min(1.0, state.targetTimeSinceVelocityChange / bulletFlightTime) / 1.0,
-				Math.min(128, state.targetDistanceLast16) / 128, };
+				Math.min(128, state.targetDistanceLast16) / 128
+			};
 	}
 
 	public final double[] getArray() {

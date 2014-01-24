@@ -29,6 +29,7 @@ import robocode.HitByBulletEvent;
 import robocode.Rules;
 import robocode.ScannedRobotEvent;
 import robocode.StatusEvent;
+import cs.util.Simulate;
 import cs.util.Tools;
 import cs.util.Vector;
 
@@ -118,5 +119,19 @@ public class TargetState extends State {
 				targetDistanceLast16 = targetPosition.distance(pastTargetPosition.removeLast());
 			}
 		}
+	}
+	
+	public Simulate simulateEnemyMovement() {
+		Simulate sim = new Simulate();
+		sim.position.setLocation(targetPosition);
+		sim.velocity = targetVelocity;
+		sim.heading = targetHeading;
+		sim.angleToTurn = targetHeadingDelta;
+		sim.direction = (int)Math.signum(sim.velocity);
+		//if the target is slowing down
+		if(targetVelocityDelta < 0)
+			sim.direction = -sim.direction;
+		sim.step();
+		return sim;
 	}
 }

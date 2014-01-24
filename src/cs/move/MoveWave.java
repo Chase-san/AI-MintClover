@@ -29,7 +29,7 @@ import cs.util.Wave;
 public class MoveWave extends Wave {
 	public double lastETA;
 	public MoveFormula formula;
-	public boolean fake = false;
+	public boolean heatwave = false;
 
 	private double sMnF = 0;
 	private double sMxF = 0;
@@ -62,8 +62,8 @@ public class MoveWave extends Wave {
 		completed = sC;
 	}
 	
-	public boolean isFake() {
-		return fake;
+	public boolean isHeatWave() {
+		return heatwave;
 	}
 
 	public double getETA(Vector target, long time) {
