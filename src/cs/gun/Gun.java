@@ -25,6 +25,7 @@ package cs.gun;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import robocode.Bullet;
 import robocode.Rules;
 import robocode.util.Utils;
@@ -88,6 +89,12 @@ public class Gun {
 	private double getBestAngleOffset(final GunWave wave) {
 		if (state.gunHeat / State.coolingRate > 4)
 			return 0;
+		
+		double perfect = PointBlankTargeting.getPerfectAim(wave, state);
+		if(!Double.isNaN(perfect)) {
+			bot.out.println("Perfect: " + perfect);
+			return perfect;
+		}
 
 		int size = (int) Tools.limit(1, tree.size() / 14, 80);
 		final List<Entry<GunFormula>> list = tree.nearestNeighbor(wave.data.getArray(), size, false);
@@ -126,12 +133,10 @@ public class Gun {
 
 		double bulletPower = 1.95;
 
-		if (state.targetDistance <= 160) {
-			bulletPower = (int)(state.targetDistance*-1/4.0+59);
-			bulletPower = Math.min(29, bulletPower)/10.0;
-			bulletPower += 0.05;
-		}
+		if (state.targetDistance < 140)
+			bulletPower = 2.95;
 
+		bulletPower = Math.min(state.energy / 4.0, bulletPower);
 		bulletPower = Math.min(state.targetEnergy / 4.0, bulletPower);
 		bulletPower = Math.max(0.1, bulletPower);
 
