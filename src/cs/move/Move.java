@@ -51,6 +51,7 @@ import cs.util.Vector;
  */
 public class Move {
 	private static final KdTree.WeightedSqrEuclid<MoveFormula> tree;
+	//private static final KdTree.WeightedSqrEuclid<T>
 	static {
 		tree = new KdTree.WeightedSqrEuclid<MoveFormula>(MoveFormula.weights.length, 0);
 		tree.setWeights(MoveFormula.weights);
@@ -344,20 +345,34 @@ public class Move {
 	 *            The current calculated system state.
 	 */
 	public void execute(final TargetState state) {
+		if(state.time == 1) {
+			/* Set it to be the same as our gun heat on round start! */
+			targetGunHeat = state.gunHeat;
+			/* Our scans are a turn late */
+			targetGunHeat -= State.coolingRate;
+		}
+		
 		// check to see if the enemy fired
 		lastLastState = lastState;
 		lastState = this.state;
 		this.state = state;
 		
-		//TODO waveless movement
-		
 		//we want 3 states before we start doing anything related to surfing
-		if (lastState == null || lastState.targetPosition == null || lastLastState == null) {
+		if(lastState == null || lastState.targetPosition == null) {
+			return;
+		}
+		
+		if (lastLastState == null) {
+			//only need 2 turns for waveless movement.
+			doWavelessMovement();
 			return;
 		}
 
-		detectHeatWaves();
-		detectWaves();
+		//can't detect waves if the enemy is dead.
+		if(state.targetPosition != null) {
+			detectHeatWaves();
+			detectWaves();
+		}
 		updateWaves();
 		doMovement();
 	}
