@@ -29,7 +29,7 @@ import cs.util.Wave;
 public class MoveWave extends Wave {
 	public double lastETA;
 	public MoveFormula formula;
-	public boolean heatwave = false;
+	public boolean heatWave = false;
 
 	private double sMnF = 0;
 	private double sMxF = 0;
@@ -37,6 +37,8 @@ public class MoveWave extends Wave {
 	private boolean sC = false;
 
 	// TODO remember why I made these state methods
+	// Probably so we can correctly record the wave after it passes
+	// but still use the wave in our surfing calculations (without cloning).
 
 	/** Backs up the current state. */
 	public void storeState() {
@@ -63,7 +65,7 @@ public class MoveWave extends Wave {
 	}
 	
 	public boolean isHeatWave() {
-		return heatwave;
+		return heatWave;
 	}
 
 	public double getETA(Vector target, long time) {

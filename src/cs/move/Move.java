@@ -248,7 +248,7 @@ public class Move {
 			BulletPowerFormula bpf = new BulletPowerFormula(state,0);
 			
 			MoveWave wave = new MoveWave();
-			wave.heatwave = true;
+			wave.heatWave = true;
 			wave.setLocation(sim.position);
 			wave.power = tbptree.nearestNeighbor(bpf.getArray(), 1, false).get(0).value;
 			wave.speed = Rules.getBulletSpeed(wave.power);
@@ -479,7 +479,7 @@ public class Move {
 		Iterator<MoveWave> it = waves.iterator();
 		while(it.hasNext()) {
 			MoveWave wave = it.next();
-			if(wave.heatwave || Math.abs(wave.power - bullet.getPower()) > 0.001)
+			if(wave.heatWave || Math.abs(wave.power - bullet.getPower()) > 0.001)
 				continue;
 			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
 			
@@ -505,7 +505,7 @@ public class Move {
 		Iterator<MoveWave> it = waves.iterator();
 		while(it.hasNext()) {
 			MoveWave wave = it.next();
-			if(wave.heatwave || Math.abs(wave.power - bullet.getPower()) > 0.001)
+			if(wave.heatWave || Math.abs(wave.power - bullet.getPower()) > 0.001)
 				continue;
 			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
 			
