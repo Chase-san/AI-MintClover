@@ -64,7 +64,6 @@ public class Move {
 				BulletPowerFormula.weights.length, 0);
 		BulletPowerFormula tmp2 = new BulletPowerFormula();
 		tbptree.addPoint(tmp2.getArray(), tmp2.power);
-		
 	}
 
 	private final Mint bot;
