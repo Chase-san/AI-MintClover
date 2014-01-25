@@ -32,6 +32,10 @@ import robocode.util.Utils;
  * 
  */
 public class Tools {
+	private static final double PI = Math.PI;
+	private static final double HALF_PI = Math.PI/2.0;
+	private static final double ONE_HALF_PI = Math.PI*2.0;
+	private static final double TWO_PI = Math.PI*2.0;
 	private static final int WALL_MARGIN = 18;
 
 	private static final double distanceWest(final double toWall, final double eDist, final double eAngle,
@@ -43,8 +47,7 @@ public class Tools {
 	}
 
 	/**
-	 * Calculates the wall distance to the given target, given the correct
-	 * values.
+	 * Calculates the rotational arc to the nearest wall from the given target.
 	 * 
 	 * @param target
 	 *            The targets position on the battlefield
@@ -58,7 +61,7 @@ public class Tools {
 	 *            The targets orbit direction
 	 * @return The rotational distance to the nearest wall
 	 */
-	public static final double getWallDistance(final Vector target, final double fieldWidth, final double fieldHeight,
+	public static final double getRadialWallDistance(final Vector target, final double fieldWidth, final double fieldHeight,
 			final double targetDistance, final double targetAngle, final int orbitDirection) {
 		return Math.min(Math.min(Math
 				.min(distanceWest(fieldHeight - WALL_MARGIN - target.y, targetDistance, targetAngle - Math.PI / 2.0,
@@ -67,6 +70,29 @@ public class Tools {
 								orbitDirection)),
 				distanceWest(target.y - WALL_MARGIN, targetDistance, targetAngle + Math.PI / 2.0, orbitDirection)),
 				distanceWest(target.x - WALL_MARGIN, targetDistance, targetAngle, orbitDirection));
+	}
+	
+	/**
+	 * Calculates the target robot's distance to the nearest wall, based on it's size.
+	 * @param target The targets position
+	 * @param fieldWidth The battlefields full width.
+	 * @param fieldHeight The battlefields full height.
+	 * @return The distance from the nearest wall
+	 */
+	public static final double getNearestWallDistance(Vector target, double fieldWidth, double fieldHeight) {
+		double west = target.x - WALL_MARGIN;
+		double east = fieldWidth - WALL_MARGIN - target.x;
+		double north = target.y - WALL_MARGIN;
+		double south = fieldHeight - WALL_MARGIN - target.y;
+		return Math.min(Math.min(north, south), Math.min(east, west));
+	}
+	
+	public static final boolean isAngleWallParallel(double angle) {
+		return Utils.isNear(angle, 0) ||
+				Utils.isNear(angle, HALF_PI) ||
+				Utils.isNear(angle, PI) ||
+				Utils.isNear(angle, ONE_HALF_PI) ||
+				Utils.isNear(angle, TWO_PI);
 	}
 
 	/**

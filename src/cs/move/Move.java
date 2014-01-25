@@ -50,15 +50,21 @@ import cs.util.Vector;
  * @author Chase
  */
 public class Move {
-	private static final KdTree.WeightedSqrEuclid<MoveFormula> tree;
-	//private static final KdTree.WeightedSqrEuclid<T>
+	private static final KdTree.WeightedSqrEuclid<MoveFormula> gftree;
+	private static final KdTree.WeightedSqrEuclid<Double> tbptree;
 	static {
-		tree = new KdTree.WeightedSqrEuclid<MoveFormula>(MoveFormula.weights.length, 0);
-		tree.setWeights(MoveFormula.weights);
+		gftree = new KdTree.WeightedSqrEuclid<MoveFormula>(MoveFormula.weights.length, 0);
+		gftree.setWeights(MoveFormula.weights);
 		
 		// seed the tree (just one, a basic avoid head on targeting)
 		MoveFormula tmp = new MoveFormula();
-		tree.addPoint(tmp.getArray(), tmp);
+		gftree.addPoint(tmp.getArray(), tmp);
+		
+		tbptree = new KdTree.WeightedSqrEuclid<Double>(
+				BulletPowerFormula.weights.length, 0);
+		BulletPowerFormula tmp2 = new BulletPowerFormula();
+		tbptree.addPoint(tmp2.getArray(), tmp2.power);
+		
 	}
 
 	private final Mint bot;
@@ -85,7 +91,7 @@ public class Move {
 		// check risk
 		double centerGF = (wave.minFactor + wave.maxFactor) / 2.0;
 		double waveRisk = 0;
-		List<Entry<MoveFormula>> list = tree.nearestNeighbor(wave.formula.getArray(), 64, false);
+		List<Entry<MoveFormula>> list = gftree.nearestNeighbor(wave.formula.getArray(), 64, false);
 		for (final Entry<MoveFormula> e : list) {
 			double gf = e.value.guessfactor;
 			double subRisk = 0.2 / (1.0 + Math.abs(gf - centerGF));
@@ -237,11 +243,14 @@ public class Move {
 
 			Simulate sim = state.simulateEnemyMovement();
 			
+			//for this, the last time for power select will be one turn from now
+			//but we can get away with using the current turn, as it is highly similar.
+			BulletPowerFormula bpf = new BulletPowerFormula(state,0);
+			
 			MoveWave wave = new MoveWave();
 			wave.heatwave = true;
 			wave.setLocation(sim.position);
-			//TODO use kNN to get better power
-			wave.power = 3;
+			wave.power = tbptree.nearestNeighbor(bpf.getArray(), 1, false).get(0).value;
 			wave.speed = Rules.getBulletSpeed(wave.power);
 			wave.directAngle = wave.angleTo(state.position);
 			//hopefully our orbit direction will hold
@@ -252,18 +261,51 @@ public class Move {
 			
 			waves.add(wave);
 		}
-		
-		targetGunHeat -= State.coolingRate;
+	}
+	
+	/**
+	 * This method name is kind of wordy...
+	 * @return
+	 */
+	private double getLastTargetEnergyAfterWallCollision() {
+		double lastTargetEnergy = lastState.targetEnergy;
+		//check for target wall collision
+		if(Math.abs(state.targetVelocity) == 0) {
+			double lastAbsoluteVelocity = Math.abs(lastState.targetVelocity);
+			double wallDistance = Tools.getNearestWallDistance(state.targetPosition, State.battlefieldWidth, State.battlefieldHeight);
+			if(wallDistance < 0.001 && lastAbsoluteVelocity > 0) {
+				if(lastAbsoluteVelocity > 2.0) {
+					//almost definitely hit a wall (a robot hit we get a message about)
+					//TODO ignore check if we know they hit us when moving really near to a wall! (talk about corner cases!)
+					lastTargetEnergy -= Rules.getWallHitDamage(lastAbsoluteVelocity);
+				} else {
+					//if the last speed was not > 0, then they cannot possibly have collided
+					//check that they were not driving parallel to the wall
+					boolean isNearWallAngle = Tools.isAngleWallParallel(state.targetHeading) || Tools.isAngleWallParallel(lastState.targetHeading);
+					if(!isNearWallAngle) {
+						lastTargetEnergy -= Rules.getWallHitDamage(lastAbsoluteVelocity);
+					}
+				}
+			}
+		}
+		return lastTargetEnergy;
 	}
 
 	/**
 	 * Detect enemy waves.
 	 */
 	private void detectWaves() {
-		double energyDelta = lastState.targetEnergy - state.targetEnergy;
+		double energyDelta = getLastTargetEnergyAfterWallCollision() - state.targetEnergy;
 		if (energyDelta > 0 && energyDelta <= 3.0) {
 			targetGunHeat = Rules.getGunHeat(energyDelta);
+			
+			//update bullet power KNN
+			//last chance for bullet power was 1 turn ago
+			BulletPowerFormula bpf = new BulletPowerFormula(lastState,energyDelta);
+			tbptree.addPoint(bpf.getArray(), bpf.power);
+			
 			//TODO handle inactivity counter
+			//check if both our powers dropped by exactly 0.1 and we didn't get hit or fire
 			
 			MoveWave wave = new MoveWave();
 			wave.setLocation(lastState.targetPosition);
@@ -348,9 +390,9 @@ public class Move {
 		if(state.time == 1) {
 			/* Set it to be the same as our gun heat on round start! */
 			targetGunHeat = state.gunHeat;
-			/* Our scans are a turn late */
-			targetGunHeat -= State.coolingRate;
 		}
+		//XXX This might contribute to a guhHeat bug.
+		targetGunHeat -= State.coolingRate;
 		
 		// check to see if the enemy fired
 		lastLastState = lastState;
@@ -492,7 +534,7 @@ public class Move {
 	private void processCompletedWave(final MoveWave w, double angle) {
 		final MoveFormula data = w.formula;
 		data.guessfactor = Utils.normalRelativeAngle(angle - w.directAngle) / w.escapeAngle;
-		tree.addPoint(data.getArray(), data);
+		gftree.addPoint(data.getArray(), data);
 	}
 
 	/**
@@ -534,10 +576,10 @@ public class Move {
 				it.remove();
 			} else if(wave.isHeatWave() && state.time - wave.fireTime > 3) {
 				//after this the fake wave is no longer relevant
-				
-				//but only if the enemy is still alive
+				//but only if the enemy is still alive, since it might be a death wave
 				if(state.targetPosition != null)
 					it.remove();
+					
 			}
 		}
 	}

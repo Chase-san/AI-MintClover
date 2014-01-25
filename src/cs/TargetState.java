@@ -91,9 +91,9 @@ public class TargetState extends State {
 		lateralVelocity = velocity * Math.sin(e.getBearingRadians());
 		orbitDirection = lateralVelocity > 0 ? CLOCKWISE : COUNTERCLOCKWISE;
 
-		forwardOrbitalAngleToWall = Tools.getWallDistance(targetPosition, State.battlefieldWidth,
+		forwardOrbitalAngleToWall = Tools.getRadialWallDistance(targetPosition, State.battlefieldWidth,
 				State.battlefieldHeight, targetDistance, targetAngle, orbitDirection);
-		reverseOrbitalAngleToWall = Tools.getWallDistance(targetPosition, State.battlefieldWidth,
+		reverseOrbitalAngleToWall = Tools.getRadialWallDistance(targetPosition, State.battlefieldWidth,
 				State.battlefieldHeight, targetDistance, targetAngle, -orbitDirection);
 
 		pastTargetPosition.addFirst(targetPosition);
