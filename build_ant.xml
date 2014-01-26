@@ -65,22 +65,11 @@
 
 		<!-- Setup directories and filenames -->
 		<mkdir dir="${jardir}"/>
-		<property name="backup.file" location="${jardir}/${robot.classname}_${robot.version}_${LONGSTAMP}.jar" />
 		<property name="release.file" location="${jardir}/${robot.classname}_${robot.version}.jar" />
 		<property name="tmp.file" location="${jardir}/~${robot.version}.jar" />
 
 		<!-- delete older copies of your files -->
-		<delete file="${backup.file}" failonerror="false" />
 		<delete file="${release.file}" failonerror="false" />
-
-		<!-- jar takes all your java and class files and packs them togeather -->
-		<jar duplicate="add" basedir="${srcdir}" destfile="${backup.file}" compress="true">
-			<include name="**/*.java" />
-			<include name="**/*.properties" />
-		</jar>
-		<jar duplicate="add" basedir="${bindir}" destfile="${backup.file}" update="true" compress="true">
-			<include name="**/*.class" />
-		</jar>
 		
 		<!-- "pack" task selects only the minimal set of classes needed to run the bot. 
 			 This can also be done with the "classfileset" task from ant-contrib -->
