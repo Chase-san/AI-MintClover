@@ -180,15 +180,25 @@ public class Gun {
 		final GunWave wave = createWave(bulletPower, angle);
 		wave.data = new GunFormula(wave, state);
 		wave.data.weight = 0.1;
-		// turn the gun
-		final double offset = getBestAngleOffset(wave);
-		bot.setTurnGun(Utils.normalRelativeAngle(angle - state.gunHeading + offset));
-		//this is a bit confusing :/
-		Bullet b = bot.setFire(bulletPower);
-		// fire gun and create new waves
-		if (b != null) {
-			wave.data.weight = 1.0;
+		
+		// turn the gun (if < 5 turns till fire)
+		double offset = 0;
+		if(state.gunHeat/State.coolingRate < 5) {
+			//get the aim offset
+			offset = getBestAngleOffset(wave);
 		}
+		bot.setTurnGun(Utils.normalRelativeAngle(angle - state.gunHeading + offset));
+		
+		if(state.energy > bulletPower &&
+				Math.abs(state.gunTurnRemaining) < 0.001) {
+			Bullet b = bot.setFire(bulletPower);
+			
+			// fire gun and create new waves
+			if (b != null) {
+				wave.data.weight = 1.0;
+			}
+		}
+		
 		waves.add(wave);
 
 	}
