@@ -109,7 +109,7 @@ public class Move {
 		double angle = 0;
 		
 		double bestRisk = calculateWavelessRisk(bestTarget);
-		double enemyDistance = state.position.distance(lastState.targetPosition);
+		double enemyDistance = state.position.distance(getWavelessTargetPosition());
 
 		//a little dynamic distancing
 		//enemyDistance += 18*max((enemyDistance-36-50)/100.0,1.0);
@@ -164,7 +164,7 @@ public class Move {
 	}
 	
 	private double calculateWavelessRisk(Vector pos) {
-		double risk = 100.0/pos.distanceSq(lastState.targetPosition);
+		double risk = 100.0/pos.distanceSq(getWavelessTargetPosition());
 		
 		for(double[] edge : State.wavelessField.getEdges()) {
 			risk += 5.0/(1.0+Line2D.ptSegDistSq(edge[0], edge[1], edge[2], edge[3], pos.x, pos.y));
@@ -175,9 +175,10 @@ public class Move {
 		 * these are bad places to be! Our hitbox is larger here if nothing else!
 		 */
 		for(double[] corner : State.wavelessField.getCorners()) {
-			corner[0] = (corner[0]+lastState.targetPosition.x)/2.0;
-			corner[1] = (corner[1]+lastState.targetPosition.y)/2.0;
-			if(lastState.targetPosition.distanceSq(corner[0], corner[1]) < 22500) {
+			Vector targetPos = getWavelessTargetPosition();
+			corner[0] = (corner[0]+targetPos.x)/2.0;
+			corner[1] = (corner[1]+targetPos.y)/2.0;
+			if(targetPos.distanceSq(corner[0], corner[1]) < 22500) {
 				risk += 5.0/(1.0+pos.distanceSq(corner[0], corner[1]));
 			}
 		}
@@ -327,7 +328,7 @@ public class Move {
 			if(safeTurns > 4) {
 				doMinimalRiskMovement();
 			} else {
-				driver.drive(state.position, lastState.targetPosition,
+				driver.drive(state.position, getWavelessTargetPosition(),
 						state.bodyHeading, state.velocity, state.orbitDirection);
 				
 				bot.setTurnBody(driver.getAngleToTurn());
@@ -341,6 +342,14 @@ public class Move {
 		}
 		
 	}
+	
+
+	private Vector getWavelessTargetPosition() {
+		Vector pos = lastState.targetPosition;
+		if(pos == null)
+			return State.battlefield.getCenter();
+		return pos;
+	}
 
 	/**
 	 * Perform movement.
@@ -353,9 +362,13 @@ public class Move {
 		
 		MoveWave wave = getBestWave();
 		
+		bot.g.setColor(Color.WHITE);
 		if (wave == null) {
+			bot.g.drawString("Minimum Risk", 4, 16);
 			doWavelessMovement();
 			return;
+		} else {
+			bot.g.drawString("Surfing", 4, 16);
 		}
 
 		// direction and risk
@@ -386,6 +399,8 @@ public class Move {
 	 *            The current calculated system state.
 	 */
 	public void execute(final TargetState state) {
+		bot.g.setColor(Color.YELLOW);
+		bot.g.drawString("Movement OK", 4, 28);
 		if(state.time == 1) {
 			/* Set it to be the same as our gun heat on round start! */
 			targetGunHeat = state.gunHeat;
@@ -399,13 +414,14 @@ public class Move {
 		this.state = state;
 		
 		//we want 3 states before we start doing anything related to surfing
-		if(lastState == null || lastState.targetPosition == null) {
+		if (lastState == null) {
 			return;
 		}
-		
 		if (lastLastState == null) {
 			//only need 2 turns for waveless movement.
-			doWavelessMovement();
+			if(lastState.targetPosition != null) {
+				doWavelessMovement();
+			}
 			return;
 		}
 
@@ -560,13 +576,12 @@ public class Move {
 		while (it.hasNext()) {
 			MoveWave wave = it.next();
 
-			double r = wave.getRadius(state.time);
 			if(wave.isHeatWave()) {
 				bot.g.setColor(Color.RED);
 			} else {
 				bot.g.setColor(Color.WHITE);
 			}
-			bot.g.draw(new java.awt.geom.Ellipse2D.Double(wave.x - r, wave.y - r, r * 2, r * 2));
+			wave.draw(bot.g, state.time);
 
 			wave.update(state.time, state.position);
 
