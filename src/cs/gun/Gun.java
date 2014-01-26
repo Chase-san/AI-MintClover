@@ -80,7 +80,7 @@ public class Gun {
 		wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.targetOrbitDirection;
 		return wave;
 	}
-
+	
 	/**
 	 * Calculates the best aim for our gun.
 	 * 
@@ -89,12 +89,6 @@ public class Gun {
 	private double getBestAngleOffset(final GunWave wave) {
 		if (state.gunHeat / State.coolingRate > 4)
 			return 0;
-		
-		double perfect = PointBlankTargeting.getPerfectAim(wave, state);
-		if(!Double.isNaN(perfect)) {
-			bot.out.println("Perfect: " + perfect);
-			return perfect;
-		}
 
 		int size = (int) Tools.limit(1, tree.size() / 14, 80);
 		final List<Entry<GunFormula>> list = tree.nearestNeighbor(wave.data.getArray(), size, false);
@@ -165,6 +159,7 @@ public class Gun {
 		this.next = next;
 	}
 
+	
 	/**
 	 * Called every turn to update and execute the gun.
 	 * 
@@ -188,9 +183,10 @@ public class Gun {
 		// turn the gun
 		final double offset = getBestAngleOffset(wave);
 		bot.setTurnGun(Utils.normalRelativeAngle(angle - state.gunHeading + offset));
+		//this is a bit confusing :/
 		Bullet b = bot.setFire(bulletPower);
 		// fire gun and create new waves
-		if (state.gunTurnRemaining == 0 && b != null) {
+		if (b != null) {
 			wave.data.weight = 1.0;
 		}
 		waves.add(wave);
