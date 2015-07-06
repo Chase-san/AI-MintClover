@@ -309,16 +309,17 @@ public class Move {
 	}
 
 	/**
-	 * Determine the best wave to surf. TODO Make higher power bullets a higher risk.
+	 * Determine the best wave to surf.
 	 */
 	private MoveWave getBestWave() {
 		MoveWave wave = null;
-		double bestEta = Double.POSITIVE_INFINITY;
+		double bestFitness = Double.NEGATIVE_INFINITY;
 		for(final MoveWave check : waves) {
 			final double eta = check.getETA(state.position, state.time);
-			if(eta < bestEta) {
+			final double fitness = check.power / eta;
+			if(fitness > bestFitness) {
 				wave = check;
-				bestEta = eta;
+				bestFitness = fitness;
 			}
 		}
 		return wave;
