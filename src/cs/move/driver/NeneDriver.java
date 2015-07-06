@@ -37,29 +37,30 @@ public class NeneDriver implements Driver {
 	 * Distancer Constants, control how the distancer acts, limiter is linear
 	 * equation
 	 */
-	private static final double distBestDistance = 500.0;
+	private static final double DISTANCE_BEST = 500.0;
 
 	/* distancer angle limiting */
-	private static final double distMinDistance = 300;
-	private static final double distMinRotation = Math.PI / 4.0;
-	private static final double distMaxDistance = 800;
-	private static final double distMaxRotation = Math.PI / 10.0;
-	private static final double distMultiplier = (distMaxRotation - distMinRotation)
-			/ (distMaxDistance - distMinDistance);
-	private static final double distAdder = distMinRotation - distMultiplier * distMinDistance;
+	private static final double DISTANCE_MIN = 300;
+	private static final double ROTATION_MIN = Math.PI / 4.0;
+	private static final double DISTANCE_MAX = 800;
+	private static final double ROTATION_MAX = Math.PI / 10.0;
+	private static final double DISTANCE_MULTIPLY = (ROTATION_MAX - ROTATION_MIN)
+			/ (DISTANCE_MAX - DISTANCE_MIN);
+	private static final double DISTANCE_OFFSET = ROTATION_MIN - DISTANCE_MULTIPLY * DISTANCE_MIN;
+	
+	private static final double WALL_MARGIN = 18;
 
 	private int direction = 1;
 	private double maxVelocity = 0;
 	private double angleToTurn = 0;
 
-	private static final double WALL_MARGIN = 18;
-	private double fw = 800;
-	private double fh = 600;
+	private double field_width = 800;
+	private double field_height = 600;
 
 	@Override
 	public void setBattlefieldSize(double width, double height) {
-		fw = width;
-		fh = height;
+		field_width = width;
+		field_height = height;
 	}
 
 	@Override
@@ -101,15 +102,15 @@ public class NeneDriver implements Driver {
 		/* DONE add distancing to drive method */
 		/* TODO add a better distancing method */
 		double distance = position.distance(center);
-		double distancing = ((distance - distBestDistance) / distBestDistance);
+		double distancing = ((distance - DISTANCE_BEST) / DISTANCE_BEST);
 
-		double limit = Tools.limit(distMinRotation, distMultiplier * distance + distAdder, distMaxRotation);
+		double limit = Tools.limit(ROTATION_MIN, DISTANCE_MULTIPLY * distance + DISTANCE_OFFSET, ROTATION_MAX);
 
 		distancing = Tools.limit(-limit, distancing, limit);
 
 		travelAngle += distancing * orbitDirection;
 
-		travelAngle = fastSmooth(position, travelAngle, orbitDirection, distance, fw, fh);
+		travelAngle = fastSmooth(position.x, position.y, travelAngle, orbitDirection, distance);
 
 		angleToTurn = Utils.normalRelativeAngle(travelAngle - heading);
 		direction = 1;
@@ -129,30 +130,23 @@ public class NeneDriver implements Driver {
 		 */
 		Vector tmp = position.clone();
 		tmp.project(heading, velocity * 3.25);
-
-		if (tmp.x < WALL_MARGIN || tmp.x > fw - WALL_MARGIN || tmp.y < WALL_MARGIN || tmp.y > fh - WALL_MARGIN) {
+		if (tmp.x < WALL_MARGIN || tmp.x > field_width - WALL_MARGIN || tmp.y < WALL_MARGIN || tmp.y > field_height - WALL_MARGIN) {
 			maxVelocity = 0;
 		}
-
 		tmp.setLocation(position);
 		tmp.project(heading, velocity * 5);
-		if (tmp.x < WALL_MARGIN || tmp.x > fw - WALL_MARGIN || tmp.y < WALL_MARGIN || tmp.y > fh - WALL_MARGIN) {
+		if (tmp.x < WALL_MARGIN || tmp.x > field_width - WALL_MARGIN || tmp.y < WALL_MARGIN || tmp.y > field_height - WALL_MARGIN) {
 			maxVelocity = 4;
 		}
 	}
 
-	private static final double fastSmooth(Vector pos, double angle, int direction, double dist, double fw, double fh) {
-		return fastSmooth(pos.x, pos.y, angle, direction, fw, fh, dist);
-	}
-
-	// no object creation or method calling if we can help it, need this to stay
-	// fast and rather memory unintensive
-	private static final double fastSmooth(double px, double py, double angle, int direction, double fw, double fh,
-			double c2pd) {
-
+	/**
+	 * No object creation or method calling if we can help it, need this to stay fast and rather memory unintensive.
+	 */
+	private final double fastSmooth(double px, double py, double angle, int direction, double distance) {
 		double stick = 140;
-		if (c2pd < stick) {
-			stick = c2pd;
+		if (distance < stick) {
+			stick = distance;
 		}
 
 		double stickSq = stick * stick;
@@ -160,32 +154,32 @@ public class NeneDriver implements Driver {
 		double nx = px + stick * Math.sin(angle);
 		double ny = py + stick * Math.cos(angle);
 
-		if (nx >= WALL_MARGIN && nx <= fw - WALL_MARGIN && ny >= WALL_MARGIN && ny <= fh - WALL_MARGIN)
+		if (nx >= WALL_MARGIN && nx <= field_width - WALL_MARGIN && ny >= WALL_MARGIN && ny <= field_height - WALL_MARGIN)
 			return angle;
 
 		/* TOP */
-		if (ny > fh - WALL_MARGIN || py > fh - stick - WALL_MARGIN) {
+		if (ny > field_height - WALL_MARGIN || py > field_height - stick - WALL_MARGIN) {
 			/* RIGHT */
-			if (nx > fw - WALL_MARGIN || px > fw - stick - WALL_MARGIN) {
+			if (nx > field_width - WALL_MARGIN || px > field_width - stick - WALL_MARGIN) {
 				if (direction > 0) {
 					// smooth right
-					stick = fw - WALL_MARGIN - px;
-					nx = fw - WALL_MARGIN;
+					stick = field_width - WALL_MARGIN - px;
+					nx = field_width - WALL_MARGIN;
 					ny = py - direction * Math.sqrt(stickSq - stick * stick);
 					return Math.atan2(nx - px, ny - py);
 				} else {
 					// smooth top
-					stick = fh - WALL_MARGIN - py;
+					stick = field_height - WALL_MARGIN - py;
 					nx = px + direction * Math.sqrt(stickSq - stick * stick);
-					ny = fh - WALL_MARGIN;
+					ny = field_height - WALL_MARGIN;
 					return Math.atan2(nx - px, ny - py);
 				}
 			} else /* LEFT */if (nx < WALL_MARGIN || px < stick + WALL_MARGIN) {
 				if (direction > 0) {
 					// smooth top
-					stick = fh - WALL_MARGIN - py;
+					stick = field_height - WALL_MARGIN - py;
 					nx = px + direction * Math.sqrt(stickSq - stick * stick);
-					ny = fh - WALL_MARGIN;
+					ny = field_height - WALL_MARGIN;
 					return Math.atan2(nx - px, ny - py);
 				} else {
 					// smooth left
@@ -196,13 +190,13 @@ public class NeneDriver implements Driver {
 				}
 			}
 			// smooth top
-			stick = fh - WALL_MARGIN - py;
+			stick = field_height - WALL_MARGIN - py;
 			nx = px + direction * Math.sqrt(stickSq - stick * stick);
-			ny = fh - WALL_MARGIN;
+			ny = field_height - WALL_MARGIN;
 			return Math.atan2(nx - px, ny - py);
 		} else /* BOTTOM */if (ny < WALL_MARGIN || py < stick + WALL_MARGIN) {
 			/* RIGHT */
-			if (nx > fw - WALL_MARGIN || px > fw - stick - WALL_MARGIN) {
+			if (nx > field_width - WALL_MARGIN || px > field_width - stick - WALL_MARGIN) {
 				if (direction > 0) {
 					// smooth bottom
 					stick = py - WALL_MARGIN;
@@ -211,8 +205,8 @@ public class NeneDriver implements Driver {
 					return Math.atan2(nx - px, ny - py);
 				} else {
 					// smooth right
-					stick = fw - WALL_MARGIN - px;
-					nx = fw - WALL_MARGIN;
+					stick = field_width - WALL_MARGIN - px;
+					nx = field_width - WALL_MARGIN;
 					ny = py - direction * Math.sqrt(stickSq - stick * stick);
 					return Math.atan2(nx - px, ny - py);
 				}
@@ -239,9 +233,9 @@ public class NeneDriver implements Driver {
 		}
 
 		/* RIGHT */
-		if (nx > fw - WALL_MARGIN || px > fw - stick - WALL_MARGIN) {
-			stick = fw - WALL_MARGIN - px;
-			nx = fw - WALL_MARGIN;
+		if (nx > field_width - WALL_MARGIN || px > field_width - stick - WALL_MARGIN) {
+			stick = field_width - WALL_MARGIN - px;
+			nx = field_width - WALL_MARGIN;
 			ny = py - direction * Math.sqrt(stickSq - stick * stick);
 			return Math.atan2(nx - px, ny - py);
 		} else /* LEFT */if (nx < WALL_MARGIN || px < stick + WALL_MARGIN) {
