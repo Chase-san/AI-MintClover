@@ -33,13 +33,12 @@ import cs.util.Vector;
  * @author Robert Maupin (Chase)
  */
 public class SeraphimDriver implements Driver {
-	private static final double bestDist = 500;
+	private static final double BEST_DISTANCE = 500;
+	private static final double WALL_MARGIN = 20;
 
 	private int direction = 1;
 	private double maxVelocity = 0;
 	private double angleToTurn = 0;
-
-	private static final double WALL_MARGIN = 20;
 
 	private double fw = 800;
 	private double fh = 600;
@@ -72,10 +71,11 @@ public class SeraphimDriver implements Driver {
 		double directAngle = center.angleTo(position);
 		double moveAngle = directAngle + (Math.PI / 2.0) * orbitDirection;
 		double distance = position.distance(center);
-		double distModifier = ((distance - bestDist) / bestDist) * orbitDirection;
+		double distModifier = ((distance - BEST_DISTANCE) / BEST_DISTANCE) * orbitDirection;
 
-		if (Math.abs(velocity) < 1e-4 || Math.abs(distance - bestDist) < 50)
+		if (Math.abs(velocity) < 1e-4 || Math.abs(distance - BEST_DISTANCE) < 50) {
 			distModifier = 0;
+		}
 
 		moveAngle += distModifier;
 
@@ -84,9 +84,9 @@ public class SeraphimDriver implements Driver {
 		while (true) {
 			tmp.setLocation(position);
 			tmp.project(moveAngle, 160);
-			if (tmp.x > WALL_MARGIN && tmp.x < fw - WALL_MARGIN && tmp.y > WALL_MARGIN && tmp.y < fh - WALL_MARGIN)
+			if (tmp.x > WALL_MARGIN && tmp.x < fw - WALL_MARGIN && tmp.y > WALL_MARGIN && tmp.y < fh - WALL_MARGIN) {
 				break;
-
+			}
 			moveAngle += 0.05 * orbitDirection;
 		}
 
@@ -100,7 +100,8 @@ public class SeraphimDriver implements Driver {
 
 		/* If the turn is to large, slow down a bit */
 		maxVelocity = Rules.MAX_VELOCITY;
-		if (angleToTurn > Math.PI / 8.0)
+		if (angleToTurn > Math.PI / 8.0) {
 			maxVelocity = 3.0;
+		}
 	}
 }

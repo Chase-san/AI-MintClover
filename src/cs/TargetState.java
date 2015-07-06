@@ -129,8 +129,9 @@ public class TargetState extends State {
 		sim.angleToTurn = targetHeadingDelta;
 		sim.direction = (int)Math.signum(sim.velocity);
 		//if the target is slowing down
-		if(targetVelocityDelta < 0)
+		if(targetVelocityDelta < 0) {
 			sim.direction = -sim.direction;
+		}
 		sim.step();
 		return sim;
 	}

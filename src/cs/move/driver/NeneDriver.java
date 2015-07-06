@@ -79,12 +79,14 @@ public class NeneDriver implements Driver {
 
 	@Override
 	public void drive(Vector position, Vector center, double heading, double velocity, int orbitDirection) {
-		if (position == null || center == null)
+		if (position == null || center == null) {
 			return; // TODO debug this
+		}
 
 		/* Better safe then very very sorry */
-		if (orbitDirection == 0)
+		if (orbitDirection == 0) {
 			orbitDirection = 1;
+		}
 
 		maxVelocity = Rules.MAX_VELOCITY;
 
@@ -128,13 +130,15 @@ public class NeneDriver implements Driver {
 		Vector tmp = position.clone();
 		tmp.project(heading, velocity * 3.25);
 
-		if (tmp.x < WALL_MARGIN || tmp.x > fw - WALL_MARGIN || tmp.y < WALL_MARGIN || tmp.y > fh - WALL_MARGIN)
+		if (tmp.x < WALL_MARGIN || tmp.x > fw - WALL_MARGIN || tmp.y < WALL_MARGIN || tmp.y > fh - WALL_MARGIN) {
 			maxVelocity = 0;
+		}
 
 		tmp.setLocation(position);
 		tmp.project(heading, velocity * 5);
-		if (tmp.x < WALL_MARGIN || tmp.x > fw - WALL_MARGIN || tmp.y < WALL_MARGIN || tmp.y > fh - WALL_MARGIN)
+		if (tmp.x < WALL_MARGIN || tmp.x > fw - WALL_MARGIN || tmp.y < WALL_MARGIN || tmp.y > fh - WALL_MARGIN) {
 			maxVelocity = 4;
+		}
 	}
 
 	private static final double fastSmooth(Vector pos, double angle, int direction, double dist, double fw, double fh) {
@@ -147,8 +151,9 @@ public class NeneDriver implements Driver {
 			double c2pd) {
 
 		double stick = 140;
-		if (c2pd < stick)
+		if (c2pd < stick) {
 			stick = c2pd;
+		}
 
 		double stickSq = stick * stick;
 

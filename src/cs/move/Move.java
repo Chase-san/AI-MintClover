@@ -146,11 +146,13 @@ public class Move {
 		double maxVelocity = Rules.MAX_VELOCITY;
 
 		
-		if(!State.battlefield.contains(state.position.clone().project(state.bodyHeading, state.velocity*3.25)))
+		if(!State.battlefield.contains(state.position.clone().project(state.bodyHeading, state.velocity*3.25))) {
 			maxVelocity = 0;
+		}
 
-		if(!State.battlefield.contains(state.position.clone().project(state.bodyHeading, state.velocity*5)))
+		if(!State.battlefield.contains(state.position.clone().project(state.bodyHeading, state.velocity*5))) {
 			maxVelocity = 4;
+		}
 
 		if(angleToTurn > 0.7 && state.velocity < 7) {
 			maxVelocity = 0;
@@ -346,8 +348,9 @@ public class Move {
 
 	private Vector getWavelessTargetPosition() {
 		Vector pos = lastState.targetPosition;
-		if(pos == null)
+		if(pos == null) {
 			return State.battlefield.getCenter();
+		}
 		return pos;
 	}
 

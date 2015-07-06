@@ -40,8 +40,9 @@ public class Tools {
 
 	private static final double distanceWest(final double toWall, final double eDist, final double eAngle,
 			final int oDir) {
-		if (eDist <= toWall)
+		if (eDist <= toWall) {
 			return Double.POSITIVE_INFINITY;
+		}
 		final double wallAngle = Math.acos(-oDir * toWall / eDist) + oDir * (Math.PI / 2.0);
 		return Utils.normalAbsoluteAngle(oDir * (wallAngle - eAngle));
 	}
@@ -188,8 +189,9 @@ public class Tools {
 		final double[] pnts = intersectRectCircle(rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight(),
 				c.x, c.y, r);
 		final Vector[] output = new Vector[pnts.length / 2];
-		for (int i = 0; i < output.length; ++i)
+		for (int i = 0; i < output.length; ++i) {
 			output[i] = new Vector(pnts[i * 2], pnts[i * 2 + 1]);
+		}
 		return output;
 	}
 
@@ -210,8 +212,9 @@ public class Tools {
 		final double[] pnts = intersectRectCircle(rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight(),
 				c.x, c.y, r);
 		final double[][] output = new double[pnts.length / 2][2];
-		for (int i = 0; i < output.length; ++i)
+		for (int i = 0; i < output.length; ++i) {
 			output[i] = new double[] { pnts[i * 2], pnts[i * 2 + 1] };
+		}
 		return output;
 	}
 
@@ -300,13 +303,14 @@ public class Tools {
 		// 1.0 means the max range of orbital movement
 		// exactly reaches bounds of battle field
 		double wallDistance = 2.0;
-		for (int x = 0; x < 200; x++)
+		for (int x = 0; x < 200; x++) {
 			if (!battlefield.contains(
 					sourceLocation.x + Math.sin(absBearing + direction * (x / 100.0) * maxEscapeAngle) * distance,
 					sourceLocation.y + Math.cos(absBearing + direction * (x / 100.0) * maxEscapeAngle) * distance)) {
 				wallDistance = x / 100.0;
 				break;
 			}
+		}
 		return wallDistance;
 	}
 
@@ -319,8 +323,9 @@ public class Tools {
 	 * @return 1 if value is greater then 0, -1 otherwise
 	 */
 	public static int sign(final double value) {
-		if (value > 0)
+		if (value > 0) {
 			return 1;
+		}
 		return -1;
 	}
 	

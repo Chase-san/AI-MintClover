@@ -155,8 +155,9 @@ public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvan
 
 	@Override
 	public final void onCustomEvent(final CustomEvent e) {
-		if (e.getCondition() instanceof TurnEndedEventCondition)
+		if (e.getCondition() instanceof TurnEndedEventCondition) {
 			onTurnEnded(e);
+		}
 	}
 
 	@Override

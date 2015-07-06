@@ -127,8 +127,9 @@ public class Gun {
 
 		double bulletPower = 1.95;
 
-		if (state.targetDistance < 140)
+		if (state.targetDistance < 140) {
 			bulletPower = 2.95;
+		}
 
 		bulletPower = Math.min(state.energy / 4.0, bulletPower);
 		bulletPower = Math.min(state.targetEnergy / 4.0, bulletPower);
@@ -168,8 +169,9 @@ public class Gun {
 	 */
 	public void execute(final TargetState state) {
 		// don't bother if we don't know where the enemy is
-		if (state.targetPosition == null)
+		if (state.targetPosition == null) {
 			return;
+		}
 		this.state = state;
 
 		updateWaves();

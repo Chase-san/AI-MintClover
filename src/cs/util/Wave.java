@@ -56,10 +56,12 @@ public class Wave extends Vector {
 		for (int i = 0; i < points.length; i += 2) {
 			final double angle = Utils.normalRelativeAngle(angleTo(points[i], points[i + 1]) - directAngle)
 					/ escapeAngle;
-			if (angle < minFactor)
+			if (angle < minFactor) {
 				minFactor = angle;
-			if (angle > maxFactor)
+			}
+			if (angle > maxFactor) {
 				maxFactor = angle;
+			}
 		}
 	}
 
@@ -128,8 +130,9 @@ public class Wave extends Vector {
 				expandMinMaxFactors(pnt);
 			}
 		}
-		if (!intersects && intersected)
+		if (!intersects && intersected) {
 			completed = true;
+		}
 	}
 	
 	
