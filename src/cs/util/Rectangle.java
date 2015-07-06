@@ -49,15 +49,24 @@ public class Rectangle extends Rectangle2D.Double {
 		return new Vector(getCenterX(), getCenterY());
 	}
 
+	/**
+	 * Returns the 4 corners of this rectangle.
+	 */
 	public final double[][] getCorners() {
 		return new double[][] { { x, y }, { x, y + height }, { x + width, y }, { x + width, y + height }, };
 	}
 
+	/**
+	 * Returns the 4 edges of this rectangle.
+	 */
 	public final double[][] getEdges() {
 		return new double[][] { { x, y, x + width, y }, { x, y, x, y + height },
 				{ x, y + height, x + width, y + height }, { x + width, y, x + width, y + height } };
 	}
 
+	/**
+	 * Sets the position and size of the rectangle based off from the center and width / height.
+	 */
 	public final void setFrame(final Vector center, final double width, final double height) {
 		setFrame(center.x - width / 2.0, center.y - height / 2.0, width, height);
 	}
