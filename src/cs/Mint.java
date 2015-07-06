@@ -103,7 +103,7 @@ public final class Mint extends RobotBase {
 		 */
 		if (doFire) {
 			try {
-				final double override = Double.parseDouble(p.getProperty("robot.gun.power", "-1.0"));
+				final double override = Double.parseDouble(p.getProperty("robot.gun.power", "0"));
 				if (override >= 0.1 && override <= 3) {
 					Gun.power = override > 3 ? 3.0 : override;
 				}
@@ -185,7 +185,7 @@ public final class Mint extends RobotBase {
 	@Override
 	public void onTurnEnded(final Event e) {
 		radar.execute(state);
-		if (!radar.isScanning()) {
+		if (!radar.isInitialScan()) {
 			if (!doMove) {
 				gun.setNextPosition(state.position);
 			} else {

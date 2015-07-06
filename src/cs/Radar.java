@@ -35,11 +35,19 @@ import cs.util.Vector;
  */
 public class Radar {
 	private final Mint bot;
-	private boolean isFirst = true;
-	private boolean isScanning = false;
+	/**
+	 * Is this prior to the initial scan?
+	 */
+	private boolean isPreInitialScan;
+	/**
+	 * Is the robot performing it's initial scan?
+	 */
+	private boolean isInitalScan;
 
 	public Radar(final Mint cntr) {
 		bot = cntr;
+		isPreInitialScan = true;
+		isInitalScan = false;
 	}
 
 	/**
@@ -57,7 +65,7 @@ public class Radar {
 
 		bot.setTurnRadar(turn);
 
-		if (isScanning) {
+		if (isInitalScan) {
 			// set the gun turn to zero in case we do not go over
 			bot.setTurnGun(0);
 			// determine how much if any we have overshot our maximum scanning
@@ -69,7 +77,7 @@ public class Radar {
 				// supplement the turn
 				bot.setTurnGun(Math.min(Rules.GUN_TURN_RATE_RADIANS, overscan) * Tools.sign(turn));
 			}
-			isScanning = false;
+			isInitalScan = false;
 		}
 	}
 
@@ -79,7 +87,7 @@ public class Radar {
 	 * @param state
 	 *            The current robot state.
 	 */
-	private void doInit(final State state) {
+	private void doInitialScan(final State state) {
 		/*
 		 * Which direction would turn our radar towards the center of the
 		 * battlefield the quickest?
@@ -94,7 +102,7 @@ public class Radar {
 		// turn as much as we need to cover the entire field twice
 		bot.setTurnRadar(turnDirection * 13);
 		bot.setTurnGun(turnDirection * 4.5);
-		isScanning = true;
+		isInitalScan = true;
 	}
 
 	/**
@@ -104,9 +112,10 @@ public class Radar {
 	 *            The current robot and enemy robot state.
 	 */
 	public void execute(final TargetState state) {
-		if (isFirst) {
-			doInit(state);
-			isFirst = false;
+		//do something special if this is the first scan
+		if (isPreInitialScan) {
+			isPreInitialScan = false;
+			doInitialScan(state);
 		} else if (state.targetPosition != null) {
 			// don't bother if we don't know where the enemy is yet
 			doExecute(state);
@@ -119,7 +128,7 @@ public class Radar {
 	 * 
 	 * @return true if doing initial scan, false otherwise
 	 */
-	public boolean isScanning() {
-		return isScanning;
+	public boolean isInitialScan() {
+		return isInitalScan;
 	}
 }
