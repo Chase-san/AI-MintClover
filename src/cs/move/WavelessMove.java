@@ -25,14 +25,14 @@ public class WavelessMove {
 
 	private double calculateRisk(Vector pos) {
 		double risk = 100.0 / pos.distanceSq(getTargetPosition());
-
+		
 		for(double[] edge : State.wavelessField.getEdges()) {
 			risk += 5.0 / (1.0 + Line2D.ptSegDistSq(edge[0], edge[1], edge[2], edge[3], pos.x, pos.y));
 		}
 
 		/*
-		 * get points between enemy location and corner and add risk!!!! these
-		 * are bad places to be! Our hitbox is larger here if nothing else!
+		 * Get points between enemy location and corner and add risk! these
+		 * are really bad places to be! Our hitbox is larger here if nothing else!
 		 */
 		for(double[] corner : State.wavelessField.getCorners()) {
 			Vector targetPos = getTargetPosition();
@@ -63,6 +63,7 @@ public class WavelessMove {
 			double targetDistance = Math.min(200, enemyDistance);
 
 			target.setLocationAndProject(state.position, angle, targetDistance);
+			
 			if(State.wavelessField.contains(target)) {
 				double risk = calculateRisk(target);
 
@@ -71,6 +72,7 @@ public class WavelessMove {
 					bestTarget = target.clone();
 				}
 			}
+			
 			angle += Math.PI / 32.0;
 		}
 
@@ -120,8 +122,11 @@ public class WavelessMove {
 			if(safeTurns > 4) {
 				doMovement();
 			} else {
-				move.getDriver()
-						.drive(state.position, getTargetPosition(), state.bodyHeading, state.velocity, state.orbitDirection);
+				/*
+				 * Stop down and face perpendicular to them to get ready for them to fire. 
+				 */
+				move.getDriver().drive(state.position, getTargetPosition(),
+						state.bodyHeading, state.velocity, state.orbitDirection);
 
 				bot.setTurnBody(move.getDriver().getAngleToTurn());
 				bot.setMaxVelocity(0);

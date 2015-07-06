@@ -31,24 +31,25 @@ public class MoveWave extends Wave {
 	public MoveFormula formula;
 	public boolean heatWave = false;
 
-	private double sMnF = 0;
-	private double sMxF = 0;
-	private boolean sI = false;
-	private boolean sC = false;
+	private double stateMinFactor = 0;
+	private double stateMaxFactor = 0;
+	private boolean stateIntersected = false;
+	private boolean stateCompleted = false;
 
-	// TODO remember why I made these state methods
-	// Probably so we can correctly record the wave after it passes
-	// but still use the wave in our surfing calculations (without cloning).
+	
+	/* These state methods are used to store the old information about the wave while
+	 * we use the wave to calculate the risk of moving in one or the other direction,
+	 * this allows us to avoid using a new class and saves time and memory.  */
 
 	/** Backs up the current state. */
 	public void storeState() {
-		sMnF = minFactor;
-		sMxF = maxFactor;
-		sI = intersected;
-		sC = completed;
+		stateMinFactor = minFactor;
+		stateMaxFactor = maxFactor;
+		stateIntersected = intersected;
+		stateCompleted = completed;
 	}
 
-	/** Resets the current state. */
+	/** Resets the wave to it's initial value. */
 	public void resetState() {
 		minFactor = 100;
 		maxFactor = -100;
@@ -56,12 +57,12 @@ public class MoveWave extends Wave {
 		completed = false;
 	}
 
-	/** Restores the previously backed up state */
+	/** Restores the previously backed up state. */
 	public void restoreState() {
-		minFactor = sMnF;
-		maxFactor = sMxF;
-		intersected = sI;
-		completed = sC;
+		minFactor = stateMinFactor;
+		maxFactor = stateMaxFactor;
+		intersected = stateIntersected;
+		completed = stateCompleted;
 	}
 	
 	public boolean isHeatWave() {
