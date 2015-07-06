@@ -273,6 +273,7 @@ public class Move {
 			/* Set it to be the same as our gun heat on round start! */
 			targetGunHeat = state.gunHeat;
 		}
+		
 		// XXX This might contribute to a guhHeat bug.
 		targetGunHeat -= State.coolingRate;
 
@@ -283,10 +284,12 @@ public class Move {
 		
 		waveless.update(state);
 
-		// we want 3 states before we start doing anything related to surfing
+		// without a last state, we can't do much of anything really
 		if(lastState == null) {
 			return;
 		}
+		
+		//we want 3 states before we start doing anything related to surfing
 		if(lastLastState == null) {
 			// only need 2 turns for waveless movement.
 			if(lastState.targetPosition != null) {
@@ -300,13 +303,13 @@ public class Move {
 			detectHeatWaves();
 			detectWaves();
 		}
+		
 		updateWaves();
 		doMovement();
 	}
 
 	/**
-	 * Determine the best wave to surf. TODO Make higher power bullets a higher
-	 * risk.
+	 * Determine the best wave to surf. TODO Make higher power bullets a higher risk.
 	 */
 	private MoveWave getBestWave() {
 		MoveWave wave = null;
