@@ -24,13 +24,15 @@ package cs;
 
 import java.awt.Color;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Properties;
 
 import robocode.BulletHitBulletEvent;
 import robocode.BulletHitEvent;
 import robocode.Event;
 import robocode.HitByBulletEvent;
+import robocode.RobocodeFileWriter;
 import robocode.ScannedRobotEvent;
 import robocode.StatusEvent;
 import cs.gun.Gun;
@@ -80,45 +82,78 @@ public final class Mint extends RobotBase {
 	 */
 	private void loadProperties() {
 		final Properties p = new Properties();
+		final File file = getDataFile("config.properties");
 		try {
-			final File file = getDataFile("config.properties");
-			final FileInputStream fis = new FileInputStream(file);
-			p.load(fis);
-			fis.close();
-		} catch (final Exception e) {
-			// Properties failed to load in some way
-			System.err.println("Failed to load config. Using defaults.");
-		}
-		/*
-		 * Determine if we should fire our gun at all.
-		 */
-		try {
-			if (Integer.parseInt(p.getProperty("robot.gun.fire", "1")) == 0) {
-				doFire = false;
-			}
-		} catch (final Exception e) {
-		}
-		/*
-		 * Load a override bullet power if one exists, and we are firing.
-		 */
-		if (doFire) {
-			try {
-				final double override = Double.parseDouble(p.getProperty("robot.gun.power", "0"));
-				if (override >= 0.1 && override <= 3) {
-					Gun.power = override > 3 ? 3.0 : override;
+			if(file.length() == 0) {
+				// Properties failed to load in some way
+				System.err.println("Failed to load config. Using defaults.");
+				
+				p.setProperty("robot.gun", "1");
+				p.setProperty("robot.move", "1");
+				
+				try {
+					RobocodeFileWriter fw = new RobocodeFileWriter(file);
+					fw.write("#Configuration File\n"
+							+ "# robot.gun\n"
+							+ "#    0    Disable Gun\n"
+							+ "#    1    Normal\n"
+							+ "#    2    Power 3 Bullets\n"
+							+ "# robot.move\n"
+							+ "#    0    Disable Movement\n"
+							+ "#    1    Normal\n"
+							+ "#    2    Minimum Risk Only\n"
+							+ "#    3    Sandbox Flattener\n");
+					p.store(fw, null);
+					fw.flush();
+					fw.close();
+				} catch(IOException e1) {
+					System.err.println("Cannot write config to robot data directory.");
 				}
-			} catch (final Exception e) {
+				return;
 			}
-		}
-		/*
-		 * Determine if we are moving at all.
-		 */
-		try {
-			if (Integer.parseInt(p.getProperty("robot.move", "1")) == 0) {
-				doMove = false;
-			}
+			
+			final FileReader fr = new FileReader(file);
+			p.load(fr);
+			fr.close();
 		} catch (final Exception e) {
 		}
+		
+		/*
+		 * Determine the gun mode
+		 */
+		try {
+			switch(Integer.parseInt(p.getProperty("robot.gun", "1"))) {
+			case 0: //disable
+				System.out.println("Gun: Disabled");
+				doFire = false;
+				break;
+			case 2: //power 3 bullets
+				System.out.println("Gun: Reference");
+				Gun.power = 3.0;
+				break;
+			}
+			
+		} catch(Exception e) {}
+		
+		/*
+		 * Determine the movement mode
+		 */
+		try {
+			switch(Integer.parseInt(p.getProperty("robot.move", "1"))) {
+			case 0: //disable
+				System.out.println("Movement: Disabled");
+				doMove = false;
+				break;
+			case 2: //minimum risk
+				System.out.println("Movement: Minimum Risk");
+				Move.doSurf = false;
+				break;
+			case 3: //sandbox flattener
+				System.out.println("Movement: Sandbox Flattener");
+				Move.doSandbox = true;
+				break;
+			}
+		} catch(Exception e) {}
 	}
 
 	/**

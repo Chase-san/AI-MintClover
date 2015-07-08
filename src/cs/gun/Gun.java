@@ -122,8 +122,9 @@ public class Gun {
 	 * Determines the power the gun should fire at.
 	 */
 	private double getBulletPower() {
-		if (power != null)
+		if (power != null) {
 			return power;
+		}
 
 		double bulletPower = 1.95;
 

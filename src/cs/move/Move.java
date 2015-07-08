@@ -64,6 +64,9 @@ public class Move {
 		tbptree.addPoint(tmp2.getArray(), tmp2.power);
 	}
 
+	public static boolean doSurf = true;
+	public static boolean doSandbox = false;
+	
 	private final Mint bot;
 	private Driver driver;
 
@@ -297,11 +300,20 @@ public class Move {
 			}
 			return;
 		}
+		
+		if(!doSurf) {
+			waveless.execute();
+			return;
+		}
 
 		// can't detect waves if the enemy is dead.
 		if(state.targetPosition != null) {
 			detectHeatWaves();
 			detectWaves();
+		} else if(waves.isEmpty()) {
+			//do victory dance!
+			bot.doVictoryDance();
+			return;
 		}
 		
 		updateWaves();
@@ -381,6 +393,9 @@ public class Move {
 	 *            The Event
 	 */
 	public void onBulletHitBullet(final BulletHitBulletEvent e) {
+		if(doSandbox) {
+			return;
+		}
 		long time = e.getTime();
 		Bullet bullet = e.getHitBullet();
 		Vector bulletPosition = new Vector(bullet.getX(), bullet.getY());
@@ -416,6 +431,9 @@ public class Move {
 	 *            The Event
 	 */
 	public void onHitByBullet(final HitByBulletEvent e) {
+		if(doSandbox) {
+			return;
+		}
 		long time = e.getTime();
 		Bullet bullet = e.getBullet();
 		Vector bulletPosition = new Vector(bullet.getX(), bullet.getY());
@@ -502,12 +520,18 @@ public class Move {
 			} else {
 				bot.g.setColor(Color.WHITE);
 			}
+			
 			wave.draw(bot.g, state.time);
 
 			wave.update(state.time, state.position);
 
 			if(wave.isCompleted()) {
-				// TODO add flattener here
+				//TODO allow it to do this dynamically
+				if(doSandbox) {
+					//add based on where I am...
+					processCompletedWave(wave, wave.angleTo(lastState.position));
+				}
+				
 				it.remove();
 			} else if(wave.isHeatWave() && state.time - wave.fireTime > 3) {
 				// after this the fake wave is no longer relevant
