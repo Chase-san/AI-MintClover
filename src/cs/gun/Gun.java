@@ -89,6 +89,12 @@ public class Gun {
 	private double getBestAngleOffset(final GunWave wave) {
 		if (state.gunHeat / State.coolingRate > 4)
 			return 0;
+		
+		double perfect = GunPerfectTargeting.getPerfectAim(wave, state);
+		if(!Double.isNaN(perfect)) {
+			bot.out.println("Perfect Aim: " + perfect);
+			return perfect;
+		}
 
 		int size = (int) Tools.limit(1, tree.size() / 14, 80);
 		final List<Entry<GunFormula>> list = tree.nearestNeighbor(wave.data.getArray(), size, false);
