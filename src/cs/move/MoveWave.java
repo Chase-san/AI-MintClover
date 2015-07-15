@@ -22,56 +22,14 @@
  */
 package cs.move;
 
-import cs.util.Vector;
 import cs.util.Wave;
 
 @SuppressWarnings("serial")
 public class MoveWave extends Wave {
-	public double lastETA;
 	public MoveFormula formula;
 	public boolean heatWave = false;
-
-	private double stateMinFactor = 0;
-	private double stateMaxFactor = 0;
-	private boolean stateIntersected = false;
-	private boolean stateCompleted = false;
-
-	
-	/* These state methods are used to store the old information about the wave while
-	 * we use the wave to calculate the risk of moving in one or the other direction,
-	 * this allows us to avoid using a new class and saves time and memory.  */
-
-	/** Backs up the current state. */
-	public void storeState() {
-		stateMinFactor = minFactor;
-		stateMaxFactor = maxFactor;
-		stateIntersected = intersected;
-		stateCompleted = completed;
-	}
-
-	/** Resets the wave to it's initial value. */
-	public void resetState() {
-		minFactor = 100;
-		maxFactor = -100;
-		intersected = false;
-		completed = false;
-	}
-
-	/** Restores the previously backed up state. */
-	public void restoreState() {
-		minFactor = stateMinFactor;
-		maxFactor = stateMaxFactor;
-		intersected = stateIntersected;
-		completed = stateCompleted;
-	}
 	
 	public boolean isHeatWave() {
 		return heatWave;
-	}
-
-	public double getETA(Vector target, long time) {
-		final double halfBotWidth = 18 + Math.sin(angleTo(target)) * 7.4558441;
-		double distance = distance(target) - getRadius(time) - halfBotWidth;
-		return lastETA = (distance / speed);
-	}
+	}	
 }
