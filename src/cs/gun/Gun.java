@@ -208,7 +208,6 @@ public class Gun {
 		}
 		
 		waves.add(wave);
-
 	}
 
 	/**
