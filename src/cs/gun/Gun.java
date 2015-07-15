@@ -198,7 +198,7 @@ public class Gun {
 		}
 		bot.setTurnGun(Utils.normalRelativeAngle(angle - state.gunHeading + offset));
 		
-		if(state.energy > bulletPower) {
+		if(state.energy > bulletPower && Math.abs(state.gunTurnRemaining) < 0.001) {
 			Bullet b = bot.setFire(bulletPower);
 			
 			// fire gun and create new waves
