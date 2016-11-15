@@ -96,8 +96,10 @@ public class TargetState extends State {
 		reverseOrbitalAngleToWall = Tools.getRadialWallDistance(targetPosition, State.battlefieldWidth,
 				State.battlefieldHeight, targetDistance, targetAngle, -orbitDirection);
 
-		pastTargetPosition.addFirst(targetPosition);
 		if (lastState != null) {
+			pastTargetPosition.addAll(lastState.pastTargetPosition);
+			pastTargetPosition.addFirst(targetPosition);
+			
 			targetHeadingDelta = targetHeading - lastState.targetHeading;
 			targetVelocityDelta = targetVelocity - lastState.targetVelocity;
 			

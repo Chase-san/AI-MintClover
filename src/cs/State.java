@@ -79,8 +79,10 @@ public abstract class State {
 		bodyTurnRemaining = status.getTurnRemainingRadians();
 		others = status.getOthers();
 
-		pastPosition.addFirst(position);
 		if (lastState != null) {
+			pastPosition.addAll(lastState.pastPosition);
+			pastPosition.addFirst(position);
+			
 			bodyHeadingDelta = bodyHeading - lastState.bodyHeading;
 			velocityDelta = velocity - lastState.velocity;
 
