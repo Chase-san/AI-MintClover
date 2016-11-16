@@ -68,6 +68,7 @@ public class Move {
 	private final Mint bot;
 	protected MovePath path;
 
+	private LinkedList<Bullet> bullets = new LinkedList<Bullet>();
 	private TargetState state;
 	private TargetState lastState;
 	private TargetState lastLastState;
@@ -78,6 +79,30 @@ public class Move {
 
 	public Move(final Mint cntr) {
 		bot = cntr;
+	}
+	
+	private void calculateShadowsForBullet(final Bullet b) {
+		for(final MoveWave wave : waves) {
+			if(wave.isHeatWave) {
+				continue;
+			}
+			wave.addBulletShadow(state, b);
+		}
+	}
+
+	private void calculateShadowsForWave(final MoveWave wave) {
+		if(wave.isHeatWave) {
+			return;
+		}
+		final Iterator<Bullet> it = bullets.iterator();
+		while(it.hasNext()) {
+			final Bullet b = it.next();
+			if(!b.isActive()) {
+				it.remove();
+				continue;
+			}
+			wave.addBulletShadow(state, b);
+		}
 	}
 
 	/**
@@ -143,12 +168,31 @@ public class Move {
 		List<Entry<MoveFormula>> list = gftree.nearestNeighbor(wave.formula.getArray(), 64, false);
 		for(final Entry<MoveFormula> e : list) {
 			double gf = e.value.guessfactor;
-			double subRisk = 0.2 / (1.0 + Math.abs(gf - centerGF));
+
+			/*
+			 * 20% of the risk comes from how close the predicted factor is from
+			 * the center of our pass through the wave
+			 */
+			double risk = 0.2 / (1.0 + Math.abs(gf - centerGF));
+
+			/*
+			 * 80% of the risk comes directly if the predicted factor is on top
+			 * our pass through the wave
+			 */
 			if(wave.minFactor < gf && wave.maxFactor > gf) {
-				subRisk += 0.8;
+				risk += 0.8;
 			}
+
+			/* bullet shadows apply a weight to our danger prediction */
+			double shadowWeight = 1.0 - wave.calculateShadowCoverage();
+
+			/*
+			 * the weight of the danger is based on how closely the predicted
+			 * factor matches our current state
+			 */
 			double weight = 1.0 / (1.0 + e.distance);
-			waveRisk += subRisk * weight;
+
+			waveRisk += risk * shadowWeight * weight;
 		}
 		return waveRisk / list.size();
 	}
@@ -168,8 +212,7 @@ public class Move {
 			// similar.
 			BulletPowerFormula bpf = new BulletPowerFormula(state, 0);
 
-			MoveWave wave = new MoveWave();
-			wave.heatWave = true;
+			MoveWave wave = new MoveWave(true);
 			wave.setLocation(sim.position);
 			wave.power = tbptree.nearestNeighbor(bpf.getArray(), 1, false).get(0).value;
 			wave.speed = Rules.getBulletSpeed(wave.power);
@@ -201,7 +244,7 @@ public class Move {
 			// check if both our powers dropped by exactly 0.1 and we didn't get
 			// hit or fire
 
-			MoveWave wave = new MoveWave();
+			MoveWave wave = new MoveWave(false);
 			wave.setLocation(lastState.targetPosition);
 			wave.power = energyDelta;
 			wave.speed = Rules.getBulletSpeed(wave.power);
@@ -210,6 +253,7 @@ public class Move {
 			wave.fireTime = state.time - 1;
 			wave.formula = new MoveFormula(lastLastState);
 
+			calculateShadowsForWave(wave);
 			waves.add(wave);
 		}
 	}
@@ -377,6 +421,16 @@ public class Move {
 		}
 		return state.position;
 	}
+	
+	/**
+	 * Called when we fire a bullet.
+	 * @param b bullet that was fired
+	 */
+	public void onBulletFired(final Bullet b) {
+		bullets.add(b);
+		// calculate where it will be on all future waves
+		calculateShadowsForBullet(b);
+	}
 
 	/**
 	 * Called when one of our bullets hits one of the enemies bullets.
@@ -395,7 +449,7 @@ public class Move {
 		Iterator<MoveWave> it = waves.iterator();
 		while(it.hasNext()) {
 			MoveWave wave = it.next();
-			if(wave.heatWave || Math.abs(wave.power - bullet.getPower()) > 0.001) {
+			if(wave.isHeatWave || Math.abs(wave.power - bullet.getPower()) > 0.001) {
 				continue;
 			}
 			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
@@ -433,7 +487,7 @@ public class Move {
 		Iterator<MoveWave> it = waves.iterator();
 		while(it.hasNext()) {
 			MoveWave wave = it.next();
-			if(wave.heatWave || Math.abs(wave.power - bullet.getPower()) > 0.001) {
+			if(wave.isHeatWave || Math.abs(wave.power - bullet.getPower()) > 0.001) {
 				continue;
 			}
 			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
@@ -503,7 +557,7 @@ public class Move {
 		while(it.hasNext()) {
 			MoveWave wave = it.next();
 
-			if(wave.isHeatWave()) {
+			if(wave.isHeatWave) {
 				bot.g.setColor(Color.RED);
 			} else {
 				bot.g.setColor(Color.WHITE);
@@ -521,7 +575,7 @@ public class Move {
 				}
 				
 				it.remove();
-			} else if(wave.isHeatWave() && state.time - wave.fireTime > 3) {
+			} else if(wave.isHeatWave && state.time - wave.fireTime > 3) {
 				// after this the fake wave is no longer relevant
 				// but only if the enemy is still alive, since it might be a
 				// death wave

@@ -34,10 +34,6 @@ import robocode.util.Utils;
  */
 @SuppressWarnings("serial")
 public class Wave extends Vector {
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = -7917729305277414604L;
 	public long fireTime;
 	public double power;
 	public double speed;
@@ -52,13 +48,6 @@ public class Wave extends Vector {
 	private double stateMaxFactor = 0;
 	private boolean stateIntersected = false;
 	private boolean stateCompleted = false;
-
-	/*
-	 * These state methods are used to store the old information about the wave
-	 * while we use the wave to calculate the risk of moving in one or the other
-	 * direction, this allows us to avoid using a new class and saves time and
-	 * memory.
-	 */
 
 	public void draw(java.awt.Graphics2D gx, long time) {
 		double radius = getRadius(time);
@@ -132,6 +121,13 @@ public class Wave extends Vector {
 	public boolean isIntersected() {
 		return intersected;
 	}
+	
+	/*
+	 * These state methods are used to store the old information about the wave
+	 * while we use the wave to calculate the risk of moving in one or the other
+	 * direction, this allows us to avoid using a new class and saves time and
+	 * memory.
+	 */
 
 	/** Resets the wave to it's initial value. */
 	public void resetState() {
