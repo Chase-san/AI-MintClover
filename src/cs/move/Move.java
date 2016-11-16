@@ -37,8 +37,6 @@ import robocode.util.Utils;
 import cs.Mint;
 import cs.State;
 import cs.TargetState;
-import cs.move.driver.Driver;
-import cs.move.driver.NeneDriver;
 import cs.util.Simulate;
 import cs.util.Tools;
 import cs.util.Vector;
@@ -68,12 +66,10 @@ public class Move {
 	public static boolean doSandbox = false;
 	
 	private final Mint bot;
-	private Driver driver;
+	protected MovePath path;
 
 	private TargetState state;
-
 	private TargetState lastState;
-
 	private TargetState lastLastState;
 	private WavelessMove waveless;
 	private LinkedList<MoveWave> waves = new LinkedList<MoveWave>();
@@ -115,10 +111,10 @@ public class Move {
 				intersectionTime++;
 			}
 			// Update simulation
-			driver.drive(sim.position, wave, sim.heading, sim.velocity, orbitDirection);
-			sim.angleToTurn = driver.getAngleToTurn();
-			sim.maxVelocity = driver.getMaxVelocity();
-			sim.direction = driver.getDirection();
+			path.calculatePath(sim.position, wave, sim.heading, sim.velocity, orbitDirection);
+			sim.angleToTurn = path.getAngleToTurn();
+			sim.maxVelocity = path.getMaxVelocity();
+			sim.direction = path.getDirection();
 			sim.step();
 
 			bot.g.drawRect((int) sim.position.x - 2, (int) sim.position.y - 2, 4, 4);
@@ -222,9 +218,9 @@ public class Move {
 	 * Perform movement.
 	 */
 	private void doMovement() {
-		if(driver == null) {
-			driver = new NeneDriver();
-			driver.setBattlefieldSize(State.battlefieldWidth, State.battlefieldHeight);
+		if(path == null) {
+			path = new MovePath();
+			path.setBattlefieldSize(State.battlefieldWidth, State.battlefieldHeight);
 		}
 		
 		MoveWave wave = getBestWave();
@@ -250,13 +246,13 @@ public class Move {
 			targetOrbitDirection = -state.orbitDirection;
 		}
 
-		driver.drive(state.position, lastState.targetPosition, state.bodyHeading, state.velocity, targetOrbitDirection);
+		path.calculatePath(state.position, lastState.targetPosition, state.bodyHeading, state.velocity, targetOrbitDirection);
 
-		bot.setMaxVelocity(driver.getMaxVelocity());
-		bot.setTurnBody(driver.getAngleToTurn());
-		bot.setMove(100 * driver.getDirection());
+		bot.setMaxVelocity(path.getMaxVelocity());
+		bot.setTurnBody(path.getAngleToTurn());
+		bot.setMove(100 * path.getDirection());
 
-		updateNextPosition(driver.getAngleToTurn(), driver.getMaxVelocity(), driver.getDirection());
+		updateNextPosition(path.getAngleToTurn(), path.getMaxVelocity(), path.getDirection());
 	}
 
 	/**
@@ -272,7 +268,7 @@ public class Move {
 		
 		bot.g.setColor(Color.YELLOW);
 		bot.g.drawString("Movement OK", 4, 28);
-		if(state.time == 1) {
+		if(this.state == null || this.state.time > state.time) {
 			/* Set it to be the same as our gun heat on round start! */
 			targetGunHeat = state.gunHeat;
 		}
@@ -335,10 +331,6 @@ public class Move {
 			}
 		}
 		return wave;
-	}
-
-	public Driver getDriver() {
-		return driver;
 	}
 
 	/**
@@ -485,10 +477,6 @@ public class Move {
 				System.err.printf("\t\t\t%2d   Offset  %.2f\n", i, bulletWaveDistanceSq - waveRadiusSq);
 			}
 		}
-	}
-
-	public void setDriver(Driver driver) {
-		this.driver = driver;
 	}
 
 	/**

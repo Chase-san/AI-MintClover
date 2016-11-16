@@ -20,7 +20,7 @@
  *    3. This notice may not be removed or altered from any source
  *    distribution.
  */
-package cs.move.driver;
+package cs.move;
 
 import robocode.Rules;
 import robocode.util.Utils;
@@ -28,11 +28,11 @@ import cs.util.Tools;
 import cs.util.Vector;
 
 /**
- * Driving system taken from Nene
+ * The rules to determine the forward path.
  * 
  * @author Robert Maupin (Chase)
  */
-public class NeneDriver implements Driver {
+public class MovePath {
 	/*
 	 * Distancer Constants, control how the distancer acts, limiter is linear
 	 * equation
@@ -57,29 +57,24 @@ public class NeneDriver implements Driver {
 	private double field_width = 800;
 	private double field_height = 600;
 
-	@Override
 	public void setBattlefieldSize(double width, double height) {
 		field_width = width;
 		field_height = height;
 	}
 
-	@Override
 	public int getDirection() {
 		return direction;
 	}
 
-	@Override
 	public double getMaxVelocity() {
 		return maxVelocity;
 	}
 
-	@Override
 	public double getAngleToTurn() {
 		return angleToTurn;
 	}
 
-	@Override
-	public void drive(Vector position, Vector center, double heading, double velocity, int orbitDirection) {
+	public void calculatePath(Vector position, Vector center, double heading, double velocity, int orbitDirection) {
 		if (position == null || center == null) {
 			return; // TODO debug this
 		}

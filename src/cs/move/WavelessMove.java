@@ -125,14 +125,14 @@ public class WavelessMove {
 				/*
 				 * Stop down and face perpendicular to them to get ready for them to fire. 
 				 */
-				move.getDriver().drive(state.position, getTargetPosition(),
+				move.path.calculatePath(state.position, getTargetPosition(),
 						state.bodyHeading, state.velocity, state.orbitDirection);
 
-				bot.setTurnBody(move.getDriver().getAngleToTurn());
+				bot.setTurnBody(move.path.getAngleToTurn());
 				bot.setMaxVelocity(0);
 				bot.setMove(0);
-
-				move.updateNextPosition(move.getDriver().getAngleToTurn(), 0, 1);
+				
+				move.updateNextPosition(move.path.getAngleToTurn(), 0, 1);
 			}
 		} else {
 			doMovement();
