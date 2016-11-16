@@ -22,12 +22,18 @@
  */
 package cs.move;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
+import java.awt.geom.Arc2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import cs.State;
 import cs.util.Line;
 import cs.util.Tools;
+import cs.util.Vector;
 import cs.util.Wave;
 import robocode.Bullet;
 import robocode.util.Utils;
@@ -57,7 +63,7 @@ final class FactorRange {
 
 @SuppressWarnings("serial")
 public final class MoveWave extends Wave {
-	private static final double MAX_ESCAPE_FACTOR = 1.1;
+	private static final double MAX_ESCAPE_FACTOR = 1.2;
 	
 	private ArrayList<BulletShadow> unmergedShadows = new ArrayList<BulletShadow>();
 	private ArrayList<FactorRange> mergedShadows = new ArrayList<FactorRange>();
@@ -69,114 +75,146 @@ public final class MoveWave extends Wave {
 	}
 	
 	//Adding bullet shadows
-	public void draw(java.awt.Graphics2D gx, long time) {
-		super.draw(gx, time);
+	public void draw(Graphics2D g, long time) {
+		double radius = getRadius(time);
+		
+		//draw the merged shadows
+		Stroke oldStroke = g.getStroke();
+		g.setStroke(new BasicStroke(4));
+		g.setColor(Color.GREEN);
+		//for(FactorRange range : mergedShadows) {
+		for(BulletShadow shadow : unmergedShadows) {
+			double start = Math.toDegrees(shadow.range.min * escapeAngle + directAngle) - 90;
+			double extend = Math.toDegrees(shadow.range.max * escapeAngle + directAngle) - 90;
+			g.draw(new Arc2D.Double(x - radius, y - radius, radius * 2, radius * 2, start, extend-start, Arc2D.OPEN));
+		}
+		
+		g.setStroke(oldStroke);
+		if(isHeatWave) {
+			g.setColor(Color.RED);
+		} else {
+			g.setColor(Color.WHITE);
+		}
+		super.draw(g, time);
 		
 	}
-	
-	private void applyShadow(Bullet b, Line line, long time) {
-		double minFactor = java.lang.Double.POSITIVE_INFINITY;
-		double maxFactor = java.lang.Double.NEGATIVE_INFINITY;
+
+	private void calculateShadow(Bullet b, Line line, long time) {
+		double min = java.lang.Double.POSITIVE_INFINITY;
+		double max = java.lang.Double.NEGATIVE_INFINITY;
 
 		boolean intersect = false;
 
 		double radius = getRadius(time);
-		double nextRadius = getRadius(time+1);
+		double nextRadius = getRadius(time + 1);
 
-		double[] current = Tools.intersectSegCircle(x, y, radius, line.x1, line.y1, line.x2, line.y2);
-		double[] next = Tools.intersectSegCircle(x, y, nextRadius, line.x1, line.y1, line.x2, line.y2);
-
-		for(int i=0; i<current.length; i+=2) {
-			double angle = Utils.normalRelativeAngle(angleTo(current[i],current[i+1]) - directAngle) / escapeAngle;
-			if(angle < minFactor) minFactor = angle;
-			if(angle > maxFactor) maxFactor = angle;
-
+		double[] current = Tools.intersectSegCircle(line.x1, line.y1, line.x2, line.y2, x, y, radius);
+		for(int i = 0; i < current.length; i += 2) {
+			double factor = Utils.normalRelativeAngle(angleTo(current[i], current[i + 1]) - directAngle) / escapeAngle;
+			if(factor < min) {
+				min = factor;
+			}
+			if(factor > max) {
+				max = factor;
+			}
+			intersect = true;
+		}
+		
+		double[] next = Tools.intersectSegCircle(line.x1, line.y1, line.x2, line.y2, x, y, nextRadius);
+		for(int i = 0; i < next.length; i += 2) {
+			double factor = Utils.normalRelativeAngle(angleTo(next[i], next[i + 1]) - directAngle) / escapeAngle;
+			if(factor < min) {
+				min = factor;
+			}
+			if(factor > max) {
+				max = factor;
+			}
 			intersect = true;
 		}
 
-		for(int i=0; i<next.length; i+=2) {
-			double angle = Utils.normalRelativeAngle(angleTo(next[i],next[i+1]) - directAngle) / escapeAngle;
-			if(angle < minFactor) minFactor = angle;
-			if(angle > maxFactor) maxFactor = angle;
-			intersect = true;
-		}
-
-		//if()
 		double distA = this.distanceSq(line.x1, line.y1);
-		if(distA < nextRadius*nextRadius && distA > radius*radius) {
-			double angle = Utils.normalRelativeAngle(angleTo(line.x1,line.y1) - directAngle) / escapeAngle;
-			if(angle < minFactor) minFactor = angle;
-			if(angle > maxFactor) maxFactor = angle;
+		if(distA < nextRadius * nextRadius && distA > radius * radius) {
+			double factor = Utils.normalRelativeAngle(angleTo(line.x1, line.y1) - directAngle) / escapeAngle;
+			if(factor < min) {
+				min = factor;
+			}
+			if(factor > max) {
+				max = factor;
+			}
 			intersect = true;
 		}
 
 		double distB = this.distanceSq(line.x2, line.y2);
-		if(distB < nextRadius*nextRadius && distB > radius*radius) {
-			double angle = Utils.normalRelativeAngle(angleTo(line.x2,line.y2) - directAngle) / escapeAngle;
-			if(angle < minFactor) minFactor = angle;
-			if(angle > maxFactor) maxFactor = angle;
+		if(distB < nextRadius * nextRadius && distB > radius * radius) {
+			double factor = Utils.normalRelativeAngle(angleTo(line.x2, line.y2) - directAngle) / escapeAngle;
+			if(factor < min) {
+				min = factor;
+			}
+			if(factor > max) {
+				max = factor;
+			}
 			intersect = true;
 		}
 
 		if(intersect) {
 			BulletShadow shadow = new BulletShadow();
 			shadow.b = b;
-			shadow.range = new FactorRange(minFactor, maxFactor);
-			
-			//if shadow is outside of the escape angles, don't add it
-			if((minFactor > MAX_ESCAPE_FACTOR && maxFactor > MAX_ESCAPE_FACTOR)
-			|| (minFactor < -MAX_ESCAPE_FACTOR && maxFactor < -MAX_ESCAPE_FACTOR)) {
+			shadow.range = new FactorRange(min, max);
+
+			//if shadow is entirely outside of the escape range, don't add it
+			if((min > MAX_ESCAPE_FACTOR && max > MAX_ESCAPE_FACTOR) || (min < -MAX_ESCAPE_FACTOR && max < -MAX_ESCAPE_FACTOR)) {
 				return;
 			}
 			
-			//if one of the factors is outside of the escape angle, clamp it
-			minFactor = Tools.limit(-MAX_ESCAPE_FACTOR, minFactor, MAX_ESCAPE_FACTOR);
-			maxFactor = Tools.limit(-MAX_ESCAPE_FACTOR, maxFactor, MAX_ESCAPE_FACTOR);
-				
+			//if the shadow is too small, don't add it.
+			if(max - min < 0.00001) {
+				return;
+			}
+
 			unmergedShadows.add(shadow);
 			mergeShadow(shadow);
 		}
 	}
-	
-	public void addBulletShadow(final State state, final Bullet b) {
+	public void addShadowForBullet(Vector position, Bullet b, long time) {
 		// until bullet is past wave calculate ahead
 		long timeOffset = 0;
-		final double x = b.getX();
-		final double y = b.getY();
-		final double h = b.getHeadingRadians();
-		final double v = b.getVelocity();
+		double x = b.getX();
+		double y = b.getY();
+		double heading = b.getHeadingRadians();
+		double velocity = b.getVelocity();
 		do {
-			
-			final double r = getRadius(state.time + timeOffset);
-			final Line line = Line.projection(x, y, h, v * timeOffset, v * (timeOffset + 1));
-			if(state.position.distanceSq(line.x1, line.y1) > distanceSq(state.position) - r * r) {
+			double r = getRadius(time + timeOffset);
+			Line line = Line.projection(x, y, heading,
+					velocity * timeOffset,
+					velocity * (timeOffset + 1));
+			//if the bullet has passed the distance between us and the incoming wave stop calculating
+			if(position.distanceSq(line.x1, line.y1) > distanceSq(position) - r * r) {
 				break;
 			}
-			applyShadow(b, line, state.time + timeOffset);
+			calculateShadow(b, line, time + timeOffset);
 		} while(++timeOffset < 110);
 	}
 
 	private void mergeShadow(BulletShadow shadow) {
-		double minFactor = shadow.range.min;
-		double maxFactor = shadow.range.max;
+		double min = shadow.range.min;
+		double max = shadow.range.max;
 
 		boolean merged = false;
 		for(FactorRange range : mergedShadows) {
-			
-			if(!(minFactor > range.max || maxFactor < range.min)) {
+			if(!(min > range.max || max < range.min)) {
 				//intersection
-				if(minFactor < range.min && maxFactor > range.max) {
-					range.min = minFactor;
-					range.max = maxFactor;
+				if(min < range.min && max > range.max) {
+					range.min = min;
+					range.max = max;
 				}
-				if(maxFactor > range.min && maxFactor < range.max) {
-					if(minFactor < range.min) {
-						range.min = minFactor;
+				if(max > range.min && max < range.max) {
+					if(min < range.min) {
+						range.min = min;
 					}
 				}
-				if(minFactor < range.max && minFactor > range.min) {
-					if(maxFactor > range.max) {
-						range.max = maxFactor;
+				if(min < range.max && min > range.min) {
+					if(max > range.max) {
+						range.max = max;
 					}
 				}
 				merged = true;

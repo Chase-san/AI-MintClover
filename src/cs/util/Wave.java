@@ -22,6 +22,8 @@
  */
 package cs.util;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.geom.Arc2D;
 
 import robocode.util.Utils;
@@ -49,10 +51,11 @@ public class Wave extends Vector {
 	private boolean stateIntersected = false;
 	private boolean stateCompleted = false;
 
-	public void draw(java.awt.Graphics2D gx, long time) {
+	public void draw(Graphics2D g, long time) {
 		double radius = getRadius(time);
 		double escape = Math.abs(escapeAngle);
-		gx.draw(new Arc2D.Double(x - radius, y - radius, radius * 2, radius * 2, Math.toDegrees(directAngle - escape) - 90, Math
+
+		g.draw(new Arc2D.Double(x - radius, y - radius, radius * 2, radius * 2, Math.toDegrees(directAngle - escape) - 90, Math
 				.toDegrees(escape * 2), Arc2D.OPEN));
 	}
 

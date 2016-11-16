@@ -86,7 +86,7 @@ public class Move {
 			if(wave.isHeatWave) {
 				continue;
 			}
-			wave.addBulletShadow(state, b);
+			wave.addShadowForBullet(state.position, b, state.time);
 		}
 	}
 
@@ -101,7 +101,20 @@ public class Move {
 				it.remove();
 				continue;
 			}
-			wave.addBulletShadow(state, b);
+			wave.addShadowForBullet(state.position, b, state.time);
+		}
+	}
+	
+	private void removeShadow(final Bullet b) {
+		for(final MoveWave wave : waves) {
+			// check if bullet has yet to pass through wave
+			final double r = wave.getRadius(state.time);
+			final double d = wave.distanceSq(state.position) - r * r;
+			
+			// if it hasn't, remove it from the wave
+			if(d > state.position.distanceSq(b.getX(), b.getY())) {
+				wave.removeShadow(b);
+			}
 		}
 	}
 
@@ -165,6 +178,13 @@ public class Move {
 		// check risk
 		double centerGF = (wave.minFactor + wave.maxFactor) / 2.0;
 		double waveRisk = 0;
+		
+		/* bullet shadows apply a weight to our danger prediction */
+		double shadowWeight = 1.0 - wave.calculateShadowCoverage();
+		if(shadowWeight <= 0.0001) {
+			return 0;
+		}
+		
 		List<Entry<MoveFormula>> list = gftree.nearestNeighbor(wave.formula.getArray(), 64, false);
 		for(final Entry<MoveFormula> e : list) {
 			double gf = e.value.guessfactor;
@@ -182,9 +202,6 @@ public class Move {
 			if(wave.minFactor < gf && wave.maxFactor > gf) {
 				risk += 0.8;
 			}
-
-			/* bullet shadows apply a weight to our danger prediction */
-			double shadowWeight = 1.0 - wave.calculateShadowCoverage();
 
 			/*
 			 * the weight of the danger is based on how closely the predicted
@@ -442,9 +459,12 @@ public class Move {
 		if(doSandbox) {
 			return;
 		}
+		
 		long time = e.getTime();
 		Bullet bullet = e.getHitBullet();
 		Vector bulletPosition = new Vector(bullet.getX(), bullet.getY());
+		
+		removeShadow(bullet);
 
 		Iterator<MoveWave> it = waves.iterator();
 		while(it.hasNext()) {
@@ -556,12 +576,6 @@ public class Move {
 		Iterator<MoveWave> it = waves.iterator();
 		while(it.hasNext()) {
 			MoveWave wave = it.next();
-
-			if(wave.isHeatWave) {
-				bot.g.setColor(Color.RED);
-			} else {
-				bot.g.setColor(Color.WHITE);
-			}
 			
 			wave.draw(bot.g, state.time);
 

@@ -23,11 +23,13 @@
 package cs;
 
 import java.awt.Color;
+import java.awt.RenderingHints;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
+import robocode.Bullet;
 import robocode.BulletHitBulletEvent;
 import robocode.BulletHitEvent;
 import robocode.Event;
@@ -75,6 +77,9 @@ public final class Mint extends RobotBase {
 		/* We don't actually need this one. */
 		setAdjustRadarForBodyTurn(true);
 		setAllColors(Color.decode("#23A946"));
+		
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 	}
 
 	/**
@@ -187,6 +192,14 @@ public final class Mint extends RobotBase {
 		if (doMove) {
 			move.onBulletHitBullet(e);
 		}
+	}
+	
+	/**
+	 * Called when we fire a bullet.
+	 * @param b bullet that was fired
+	 */
+	public void onBulletFired(final Bullet b) {
+		move.onBulletFired(b);
 	}
 
 	/**
