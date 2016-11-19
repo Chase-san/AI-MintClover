@@ -72,10 +72,10 @@ public final class MoveWave extends Wave {
 		Stroke oldStroke = g.getStroke();
 		g.setStroke(new BasicStroke(4));
 		g.setColor(Color.GREEN);
-		//for(FactorRange range : mergedShadows) {
-		for(BulletShadow shadow : unmergedShadows) {
-			double start = Math.toDegrees(shadow.range.getMinimum() * escapeAngle + directAngle) - 90;
-			double extend = Math.toDegrees(shadow.range.getMaximum() * escapeAngle + directAngle) - 90;
+		for(FactorRange range : mergedShadows) {
+			double start = Math.toDegrees(range.getMinimum() * escapeAngle + directAngle) - 90;
+			double extend = Math.toDegrees(range.getMaximum() * escapeAngle + directAngle) - 90;
+			
 			g.draw(new Arc2D.Double(x - radius, y - radius, radius * 2, radius * 2, start, extend-start, Arc2D.OPEN));
 		}
 		
@@ -90,8 +90,7 @@ public final class MoveWave extends Wave {
 	}
 
 	private void calculateShadow(Bullet b, Line line, long time) {
-		double min = java.lang.Double.POSITIVE_INFINITY;
-		double max = java.lang.Double.NEGATIVE_INFINITY;
+		FactorRange range = new FactorRange(Short.MAX_VALUE, Short.MIN_VALUE);
 
 		boolean intersect = false;
 
@@ -100,67 +99,53 @@ public final class MoveWave extends Wave {
 
 		double[] current = Tools.intersectSegCircle(line.x1, line.y1, line.x2, line.y2, x, y, radius);
 		for(int i = 0; i < current.length; i += 2) {
-			double factor = Utils.normalRelativeAngle(angleTo(current[i], current[i + 1]) - directAngle) / escapeAngle;
-			if(factor < min) {
-				min = factor;
-			}
-			if(factor > max) {
-				max = factor;
-			}
+			double angle = angleTo(current[i], current[i + 1]);
+			double factor = Utils.normalRelativeAngle(angle - directAngle) / escapeAngle;
+			range.expand(factor);
 			intersect = true;
 		}
 		
 		double[] next = Tools.intersectSegCircle(line.x1, line.y1, line.x2, line.y2, x, y, nextRadius);
 		for(int i = 0; i < next.length; i += 2) {
-			double factor = Utils.normalRelativeAngle(angleTo(next[i], next[i + 1]) - directAngle) / escapeAngle;
-			if(factor < min) {
-				min = factor;
-			}
-			if(factor > max) {
-				max = factor;
-			}
+			double angle = angleTo(next[i], next[i + 1]);
+			double factor = Utils.normalRelativeAngle(angle - directAngle) / escapeAngle;
+			range.expand(factor);
 			intersect = true;
 		}
-
+		
 		double distA = this.distanceSq(line.x1, line.y1);
 		if(distA < nextRadius * nextRadius && distA > radius * radius) {
-			double factor = Utils.normalRelativeAngle(angleTo(line.x1, line.y1) - directAngle) / escapeAngle;
-			if(factor < min) {
-				min = factor;
-			}
-			if(factor > max) {
-				max = factor;
-			}
+			double angle = angleTo(line.x1, line.y1);
+			double factor = Utils.normalRelativeAngle(angle - directAngle) / escapeAngle;
+			range.expand(factor);
 			intersect = true;
 		}
 
 		double distB = this.distanceSq(line.x2, line.y2);
 		if(distB < nextRadius * nextRadius && distB > radius * radius) {
-			double factor = Utils.normalRelativeAngle(angleTo(line.x2, line.y2) - directAngle) / escapeAngle;
-			if(factor < min) {
-				min = factor;
-			}
-			if(factor > max) {
-				max = factor;
-			}
+			double angle = angleTo(line.x2, line.y2);
+			double factor = Utils.normalRelativeAngle(angle - directAngle) / escapeAngle;
+			range.expand(factor);
 			intersect = true;
 		}
 
 		if(intersect) {
 			BulletShadow shadow = new BulletShadow();
 			shadow.b = b;
-			shadow.range = new FactorRange(min, max);
+			shadow.range = range;
 
 			//if shadow is entirely outside of the escape range, don't add it
-			if((min > MAX_ESCAPE_FACTOR && max > MAX_ESCAPE_FACTOR) || (min < -MAX_ESCAPE_FACTOR && max < -MAX_ESCAPE_FACTOR)) {
+			
+			if((range.getMinimum() > MAX_ESCAPE_FACTOR && range.getMaximum() > MAX_ESCAPE_FACTOR)
+			|| (range.getMinimum() < -MAX_ESCAPE_FACTOR && range.getMaximum() < -MAX_ESCAPE_FACTOR)) {
 				return;
 			}
 			
 			//if the shadow is too small, don't add it.
-			if(max - min < 0.00001) {
+			if(range.getRange() < 0.00001) {
 				return;
 			}
-
+			
 			unmergedShadows.add(shadow);
 			mergeShadow(shadow);
 		}
@@ -192,9 +177,6 @@ public final class MoveWave extends Wave {
 		boolean merged = false;
 		for(FactorRange range : mergedShadows) {
 			if(!(min > range.getMaximum() || max < range.getMinimum())) {
-				range.expand(min);
-				range.expand(max);
-				
 				//intersection
 				if(min < range.getMinimum() && max > range.getMaximum()) {
 					range.set(min, max);
@@ -206,7 +188,7 @@ public final class MoveWave extends Wave {
 					}
 				}
 				//no change in min
-				if(min < range.getMinimum() && min > range.getMinimum()) {
+				if(min < range.getMaximum() && min > range.getMinimum()) {
 					if(max > range.getMaximum()) {
 						range.setMaximum(max);
 					}

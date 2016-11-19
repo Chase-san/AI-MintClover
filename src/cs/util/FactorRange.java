@@ -65,7 +65,7 @@ public class FactorRange {
 	 * @return center factor
 	 */
 	public double getCenter() {
-		return (min + max) / 2.0;
+		return (this.min + this.max) / 2.0;
 	}
 	
 	/**
@@ -73,7 +73,7 @@ public class FactorRange {
 	 * @return maximum value
 	 */
 	public double getMaximum() {
-		return this.min;
+		return this.max;
 	}
 	
 	/**

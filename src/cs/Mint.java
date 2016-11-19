@@ -207,7 +207,7 @@ public final class Mint extends RobotBase {
 	 */
 	@Override
 	public void onScannedRobot(final ScannedRobotEvent e) {
-		state.execute(e, lastState);
+		state.update(e, lastState);
 	}
 
 	/**

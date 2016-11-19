@@ -69,7 +69,6 @@ public class State {
 	public double bodyHeadingDelta;
 	public double velocityDelta;
 	
-	
 	public ArrayDeque<Vector> pastTargetPosition = new ArrayDeque<Vector>();
 	public Vector targetPosition = null;
 	public double targetAngle;
@@ -123,7 +122,6 @@ public class State {
 		}
 	}
 	
-	
 	public void update(final BulletHitEvent e) {
 		targetEnergy -= Rules.getBulletDamage(e.getBullet().getPower());
 	}
@@ -132,7 +130,7 @@ public class State {
 		targetEnergy += Rules.getBulletHitBonus(e.getPower());
 	}
 
-	public void execute(final ScannedRobotEvent e, final State lastState) {
+	public void update(final ScannedRobotEvent e, final State lastState) {
 		// target data
 		targetRelativeAngle = e.getBearingRadians();
 		targetAngle = bodyHeading + targetRelativeAngle;
