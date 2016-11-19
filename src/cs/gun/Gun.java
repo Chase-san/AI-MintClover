@@ -86,7 +86,7 @@ public class Gun {
 	 * @return the best angle to fire at
 	 */
 	private double getBestAngleOffset(final GunWave wave) {
-		if (state.gunHeat / State.coolingRate > 4)
+		if (state.robotGunHeat / State.coolingRate > 4)
 			return 0;
 		
 		double perfect = GunPerfectTargeting.getPerfectAim(wave, state);
@@ -137,7 +137,7 @@ public class Gun {
 			bulletPower = 2.95;
 		}
 
-		bulletPower = Math.min(state.energy / 4.0, bulletPower);
+		bulletPower = Math.min(state.robotEnergy / 4.0, bulletPower);
 		bulletPower = Math.min(state.targetEnergy / 4.0, bulletPower);
 		bulletPower = Math.max(0.1, bulletPower);
 
@@ -191,13 +191,13 @@ public class Gun {
 		
 		// turn the gun (if < 5 turns till fire)
 		double offset = 0;
-		if(state.gunHeat/State.coolingRate < 5) {
+		if(state.robotGunHeat/State.coolingRate < 5) {
 			//get the aim offset
 			offset = getBestAngleOffset(wave);
 		}
-		bot.setTurnGun(Utils.normalRelativeAngle(angle - state.gunHeading + offset));
+		bot.setTurnGun(Utils.normalRelativeAngle(angle - state.robotGunHeading + offset));
 		
-		if(state.energy > bulletPower && Math.abs(state.gunTurnRemaining) < 0.001) {
+		if(state.robotEnergy > bulletPower && Math.abs(state.robotGunTurnRemaining) < 0.001) {
 			Bullet b = bot.setFire(bulletPower);
 			
 			// fire gun and create new waves

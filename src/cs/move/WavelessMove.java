@@ -69,12 +69,12 @@ public class WavelessMove {
 
 	private void doMovement() {
 		// Do minimal risk movement
-		Vector target = state.position.clone();
-		Vector bestTarget = state.position;
+		Vector target = state.robotPosition.clone();
+		Vector bestTarget = state.robotPosition;
 		double angle = 0;
 
 		double bestRisk = calculateRisk(bestTarget);
-		double enemyDistance = state.position.distance(getTargetPosition());
+		double enemyDistance = state.robotPosition.distance(getTargetPosition());
 
 		// a little dynamic distancing
 		// enemyDistance += 18*max((enemyDistance-36-50)/100.0,1.0);
@@ -83,7 +83,7 @@ public class WavelessMove {
 		while(angle < Math.PI * 2) {
 			double targetDistance = Math.min(200, enemyDistance);
 
-			target.setLocationAndProject(state.position, angle, targetDistance);
+			target.setLocationAndProject(state.robotPosition, angle, targetDistance);
 			
 			if(State.wavelessField.contains(target)) {
 				double risk = calculateRisk(target);
@@ -97,11 +97,11 @@ public class WavelessMove {
 			angle += Math.PI / 32.0;
 		}
 
-		double travelAngle = state.position.angleTo(bestTarget);
+		double travelAngle = state.robotPosition.angleTo(bestTarget);
 
-		double forward = state.position.distance(bestTarget);
+		double forward = state.robotPosition.distance(bestTarget);
 
-		double angleToTurn = Utils.normalRelativeAngle(travelAngle - state.bodyHeading);
+		double angleToTurn = Utils.normalRelativeAngle(travelAngle - state.robotBodyHeading);
 		int direction = 1;
 
 		if(Math.abs(angleToTurn) > Math.PI / 2.0) {
@@ -113,15 +113,15 @@ public class WavelessMove {
 		// turn to avoid them
 		double maxVelocity = Rules.MAX_VELOCITY;
 
-		if(!State.battlefield.contains(state.position.clone().project(state.bodyHeading, state.velocity * 3.25))) {
+		if(!State.battlefield.contains(state.robotPosition.clone().project(state.robotBodyHeading, state.robotVelocity * 3.25))) {
 			maxVelocity = 0;
 		}
 
-		if(!State.battlefield.contains(state.position.clone().project(state.bodyHeading, state.velocity * 5))) {
+		if(!State.battlefield.contains(state.robotPosition.clone().project(state.robotBodyHeading, state.robotVelocity * 5))) {
 			maxVelocity = 4;
 		}
 
-		if(angleToTurn > 0.7 && state.velocity < 7) {
+		if(angleToTurn > 0.7 && state.robotVelocity < 7) {
 			maxVelocity = 0;
 		}
 
@@ -134,7 +134,7 @@ public class WavelessMove {
 
 	public void execute() {
 		final int initialTurns = (int) Math.ceil(3.0 / State.coolingRate) + 4;
-		double safeTurns = state.gunHeat / State.coolingRate;
+		double safeTurns = state.robotGunHeat / State.coolingRate;
 		if(state.time < initialTurns) {
 			/*
 			 * Do we have enough time to move around before they can start
@@ -146,8 +146,8 @@ public class WavelessMove {
 				/*
 				 * Stop down and face perpendicular to them to get ready for them to fire. 
 				 */
-				move.path.calculatePath(state.position, getTargetPosition(),
-						state.bodyHeading, state.velocity, state.orbitDirection);
+				move.path.calculatePath(state.robotPosition, getTargetPosition(),
+						state.robotBodyHeading, state.robotVelocity, state.robotOrbitDirection);
 
 				bot.setTurnBody(move.path.getAngleToTurn());
 				bot.setMaxVelocity(0);

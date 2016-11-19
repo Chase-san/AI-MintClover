@@ -40,7 +40,7 @@ public class BulletPowerFormula {
 	public BulletPowerFormula(State state, double energyDelta) {
 		point = new double[] {
 				Math.min(state.targetEnergy/50.0, 1),
-				Math.min(state.energy/50.0, 1),
+				Math.min(state.robotEnergy/50.0, 1),
 				Math.min(state.targetDistance / 800.0, 1)
 				};
 		power = energyDelta;

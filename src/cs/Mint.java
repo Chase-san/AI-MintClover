@@ -235,7 +235,7 @@ public final class Mint extends RobotBase {
 		radar.execute(state);
 		if (!radar.isInitialScan()) {
 			if (!doMove) {
-				gun.setNextPosition(state.position);
+				gun.setNextPosition(state.robotPosition);
 			} else {
 				move.execute(state);
 				gun.setNextPosition(move.getNextPosition());

@@ -85,7 +85,7 @@ public class Move {
 			if(wave.isHeatWave) {
 				continue;
 			}
-			wave.addShadowForBullet(state.position, b, state.time);
+			wave.addShadowForBullet(state.robotPosition, b, state.time);
 		}
 	}
 
@@ -100,7 +100,7 @@ public class Move {
 				it.remove();
 				continue;
 			}
-			wave.addShadowForBullet(state.position, b, state.time);
+			wave.addShadowForBullet(state.robotPosition, b, state.time);
 		}
 	}
 	
@@ -108,10 +108,10 @@ public class Move {
 		for(final MoveWave wave : waves) {
 			// check if bullet has yet to pass through wave
 			final double r = wave.getRadius(state.time);
-			final double d = wave.distanceSq(state.position) - r * r;
+			final double d = wave.distanceSq(state.robotPosition) - r * r;
 			
 			// if it hasn't, remove it from the wave
-			if(d > state.position.distanceSq(b.getX(), b.getY())) {
+			if(d > state.robotPosition.distanceSq(b.getX(), b.getY())) {
 				wave.removeShadow(b);
 			}
 		}
@@ -126,9 +126,9 @@ public class Move {
 	 */
 	private double calculateDirectionRisk(final MoveWave wave, final int orbitDirection) {
 		Simulate sim = new Simulate();
-		sim.position.setLocation(state.position);
-		sim.heading = state.bodyHeading;
-		sim.velocity = state.velocity;
+		sim.position.setLocation(state.robotPosition);
+		sim.heading = state.robotBodyHeading;
+		sim.velocity = state.robotVelocity;
 
 		double startDistance = wave.distance(sim.position);
 		double predictedDistance = 0;
@@ -233,10 +233,10 @@ public class Move {
 			wave.setLocation(sim.position);
 			wave.power = tbptree.nearestNeighbor(bpf.getArray(), 1, false).get(0).value;
 			wave.speed = Rules.getBulletSpeed(wave.power);
-			wave.directAngle = wave.angleTo(state.position);
+			wave.directAngle = wave.angleTo(state.robotPosition);
 			// hopefully our orbit direction will hold
 			// but assume the enemy has no better information
-			wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.orbitDirection;
+			wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.robotOrbitDirection;
 			wave.fireTime = state.time + 1;
 			wave.formula = new MoveFormula(state);
 
@@ -265,7 +265,7 @@ public class Move {
 			wave.setLocation(lastState.targetPosition);
 			wave.power = energyDelta;
 			wave.speed = Rules.getBulletSpeed(wave.power);
-			wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.orbitDirection;
+			wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.robotOrbitDirection;
 			wave.directAngle = lastLastState.targetAngle + Math.PI;
 			wave.fireTime = state.time - 1;
 			wave.formula = new MoveFormula(lastLastState);
@@ -297,17 +297,17 @@ public class Move {
 
 		// direction and risk
 		bot.g.setColor(Color.GREEN);
-		double fRisk = calculateDirectionRisk(wave, state.orbitDirection);
+		double fRisk = calculateDirectionRisk(wave, state.robotOrbitDirection);
 
 		bot.g.setColor(Color.RED);
-		double rRisk = calculateDirectionRisk(wave, -state.orbitDirection);
+		double rRisk = calculateDirectionRisk(wave, -state.robotOrbitDirection);
 
-		int targetOrbitDirection = state.orbitDirection;
+		int targetOrbitDirection = state.robotOrbitDirection;
 		if(fRisk > rRisk) {
-			targetOrbitDirection = -state.orbitDirection;
+			targetOrbitDirection = -state.robotOrbitDirection;
 		}
 
-		path.calculatePath(state.position, lastState.targetPosition, state.bodyHeading, state.velocity, targetOrbitDirection);
+		path.calculatePath(state.robotPosition, lastState.targetPosition, state.robotBodyHeading, state.robotVelocity, targetOrbitDirection);
 
 		bot.setMaxVelocity(path.getMaxVelocity());
 		bot.setTurnBody(path.getAngleToTurn());
@@ -331,7 +331,7 @@ public class Move {
 		bot.g.drawString("Movement OK", 4, 28);
 		if(this.state == null || this.state.time > state.time) {
 			/* Set it to be the same as our gun heat on round start! */
-			targetGunHeat = state.gunHeat;
+			targetGunHeat = state.robotGunHeat;
 		}
 		
 		// XXX This might contribute to a guhHeat bug.
@@ -384,7 +384,7 @@ public class Move {
 		MoveWave wave = null;
 		double bestFitness = Double.NEGATIVE_INFINITY;
 		for(final MoveWave check : waves) {
-			final double eta = check.getETA(state.position, state.time);
+			final double eta = check.getETA(state.robotPosition, state.time);
 			final double fitness = check.power / eta;
 			if(fitness > bestFitness) {
 				wave = check;
@@ -436,7 +436,7 @@ public class Move {
 		if(nextPosition != null) {
 			return nextPosition;
 		}
-		return state.position;
+		return state.robotPosition;
 	}
 	
 	/**
@@ -558,9 +558,9 @@ public class Move {
 	 */
 	protected void updateNextPosition(double angle, double maxVelocity, int direction) {
 		Simulate sim = new Simulate();
-		sim.position = state.position.clone();
-		sim.velocity = state.velocity;
-		sim.heading = state.bodyHeading;
+		sim.position = state.robotPosition.clone();
+		sim.velocity = state.robotVelocity;
+		sim.heading = state.robotBodyHeading;
 		sim.angleToTurn = angle;
 		sim.maxVelocity = maxVelocity;
 		sim.direction = direction;
@@ -579,13 +579,13 @@ public class Move {
 			
 			wave.draw(bot.g, state.time);
 
-			wave.update(state.time, state.position);
+			wave.update(state.time, state.robotPosition);
 
 			if(wave.isCompleted()) {
 				//TODO allow it to do this dynamically
 				if(doSandbox) {
 					//add based on where I am...
-					processCompletedWave(wave, wave.angleTo(lastState.position));
+					processCompletedWave(wave, wave.angleTo(lastState.robotPosition));
 				}
 				
 				it.remove();

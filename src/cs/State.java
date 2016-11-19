@@ -43,139 +43,84 @@ import cs.util.Vector;
  * 
  */
 public class State {
-	public static final int CLOCKWISE = 1;
 	public static final int COUNTERCLOCKWISE = -1;
+	public static final int CLOCKWISE = 1;
+	
 	public static Rectangle battlefield;
 	public static Rectangle wavelessField;
+	
 	public static double coolingRate;
 	public static int battlefieldHeight;
 	public static int battlefieldWidth;
 
-	public ArrayDeque<Vector> pastPosition = new ArrayDeque<Vector>();
-	public final Vector position;
-	public final double bodyHeading;
-	public final double bodyTurnRemaining;
-	public final double energy;
-	public final double gunHeading;
-	public final double gunHeat;
-	public final double gunTurnRemaining;
-	public final double radarHeading;
-	public final double velocity;
-	public final long time;
 	public final int others;
 	public final int roundNum;
-
-	public double distanceLast10;
-	public double bodyHeadingDelta;
-	public double velocityDelta;
+	public final long time;
 	
-	public ArrayDeque<Vector> pastTargetPosition = new ArrayDeque<Vector>();
-	public Vector targetPosition = null;
+	public ArrayDeque<Vector> robotPastPosition = new ArrayDeque<Vector>();
+	public double robotAdvancingVelocity;
+	public double robotBodyHeading;
+	public double robotBodyHeadingDelta;
+	public double robotBodyTurnRemaining;
+	public double robotDistanceLast10;
+	public double robotEnergy;
+	public double robotForwardOrbitalAngleToWall;
+	public double robotGunHeading;
+	public double robotGunHeat;
+	public double robotGunTurnRemaining;
+	public double robotLateralVelocity;
+	public int robotOrbitDirection;
+	
+	public Vector robotPosition;
+	public double robotRadarHeading;
+	public double robotReverseOrbitalAngleToWall;
+	public double robotVelocity;
+	public double robotVelocityDelta;
+	public long robotTimeSinceOrbitalDirectionChange;
+	
+	public ArrayDeque<Vector> targetPastPosition = new ArrayDeque<Vector>();
 	public double targetAngle;
 	public double targetDistance;
+	public double targetDistanceLast16;
 	public double targetEnergy;
 	public double targetHeading;
 	public double targetHeadingDelta;
 	public double targetLateralVelocity;
+	public int targetOrbitDirection;
+	
+	public Vector targetPosition = null;
 	public double targetRelativeAngle;
 	public double targetVelocity;
 	public double targetVelocityDelta;
-	public double targetDistanceLast16;
 	public long targetTimeSinceVelocityChange;
-	public int targetOrbitDirection;
-
-	public long timeSinceOrbitalDirectionChange;
-	public double forwardOrbitalAngleToWall;
-	public double reverseOrbitalAngleToWall;
-	public double advancingVelocity;
-	public double lateralVelocity;
-	public int orbitDirection;
 
 	public State(final StatusEvent e, final State lastState) {
 		final RobotStatus status = e.getStatus();
 		time = status.getTime();
 		roundNum = status.getRoundNum();
-		position = new Vector(status.getX(), status.getY());
-		bodyHeading = status.getHeadingRadians();
-		gunHeading = status.getGunHeadingRadians();
-		radarHeading = status.getRadarHeadingRadians();
-		gunHeat = status.getGunHeat();
-		energy = status.getEnergy();
-		velocity = status.getVelocity();
+		robotPosition = new Vector(status.getX(), status.getY());
+		robotBodyHeading = status.getHeadingRadians();
+		robotGunHeading = status.getGunHeadingRadians();
+		robotRadarHeading = status.getRadarHeadingRadians();
+		robotGunHeat = status.getGunHeat();
+		robotEnergy = status.getEnergy();
+		robotVelocity = status.getVelocity();
 
-		gunTurnRemaining = status.getGunTurnRemainingRadians();
-		bodyTurnRemaining = status.getTurnRemainingRadians();
+		robotGunTurnRemaining = status.getGunTurnRemainingRadians();
+		robotBodyTurnRemaining = status.getTurnRemainingRadians();
 		others = status.getOthers();
 
 		if (lastState != null) {
-			pastPosition.addAll(lastState.pastPosition);
-			pastPosition.addFirst(position);
+			robotPastPosition.addAll(lastState.robotPastPosition);
+			robotPastPosition.addFirst(robotPosition);
 			
-			bodyHeadingDelta = bodyHeading - lastState.bodyHeading;
-			velocityDelta = velocity - lastState.velocity;
+			robotBodyHeadingDelta = robotBodyHeading - lastState.robotBodyHeading;
+			robotVelocityDelta = robotVelocity - lastState.robotVelocity;
 
-			if (pastPosition.size() < 10) {
-				distanceLast10 = position.distance(pastPosition.getLast());
+			if (robotPastPosition.size() < 10) {
+				robotDistanceLast10 = robotPosition.distance(robotPastPosition.getLast());
 			} else {
-				distanceLast10 = position.distance(pastPosition.removeLast());
-			}
-		}
-	}
-	
-	public void update(final BulletHitEvent e) {
-		targetEnergy -= Rules.getBulletDamage(e.getBullet().getPower());
-	}
-
-	public void update(final HitByBulletEvent e) {
-		targetEnergy += Rules.getBulletHitBonus(e.getPower());
-	}
-
-	public void update(final ScannedRobotEvent e, final State lastState) {
-		// target data
-		targetRelativeAngle = e.getBearingRadians();
-		targetAngle = bodyHeading + targetRelativeAngle;
-		targetVelocity = e.getVelocity();
-		final double bearing = e.getHeadingRadians() - targetAngle;
-		targetLateralVelocity = targetVelocity * Math.sin(bearing);
-		targetOrbitDirection = targetLateralVelocity > 0 ? CLOCKWISE : COUNTERCLOCKWISE;
-		targetHeading = e.getHeadingRadians();
-		// since we call scanned robot after the other two, we need += this
-		targetEnergy = e.getEnergy();
-		targetPosition = position.clone().project(targetAngle, targetDistance = e.getDistance());
-
-		// robot data
-		advancingVelocity = velocity * Math.cos(e.getBearingRadians());
-		lateralVelocity = velocity * Math.sin(e.getBearingRadians());
-		orbitDirection = lateralVelocity > 0 ? CLOCKWISE : COUNTERCLOCKWISE;
-
-		forwardOrbitalAngleToWall = Tools.getRadialWallDistance(targetPosition, State.battlefieldWidth,
-				State.battlefieldHeight, targetDistance, targetAngle, orbitDirection);
-		reverseOrbitalAngleToWall = Tools.getRadialWallDistance(targetPosition, State.battlefieldWidth,
-				State.battlefieldHeight, targetDistance, targetAngle, -orbitDirection);
-
-		if (lastState != null) {
-			pastTargetPosition.addAll(lastState.pastTargetPosition);
-			pastTargetPosition.addFirst(targetPosition);
-			
-			targetHeadingDelta = targetHeading - lastState.targetHeading;
-			targetVelocityDelta = targetVelocity - lastState.targetVelocity;
-			
-			timeSinceOrbitalDirectionChange = lastState.timeSinceOrbitalDirectionChange;
-			++timeSinceOrbitalDirectionChange;
-			if (lastState.orbitDirection != orbitDirection) {
-				timeSinceOrbitalDirectionChange = 0;
-			}
-
-			targetTimeSinceVelocityChange = lastState.targetTimeSinceVelocityChange;
-			++targetTimeSinceVelocityChange;
-			if (Math.abs(targetLateralVelocity - lastState.targetLateralVelocity) > 0.5) {
-				targetTimeSinceVelocityChange = 0;
-			}
-
-			if (pastTargetPosition.size() < 16) {
-				targetDistanceLast16 = targetPosition.distance(pastTargetPosition.getLast());
-			} else {
-				targetDistanceLast16 = targetPosition.distance(pastTargetPosition.removeLast());
+				robotDistanceLast10 = robotPosition.distance(robotPastPosition.removeLast());
 			}
 		}
 	}
@@ -193,5 +138,63 @@ public class State {
 		}
 		sim.step();
 		return sim;
+	}
+
+	public void update(final BulletHitEvent e) {
+		targetEnergy -= Rules.getBulletDamage(e.getBullet().getPower());
+	}
+
+	public void update(final HitByBulletEvent e) {
+		targetEnergy += Rules.getBulletHitBonus(e.getPower());
+	}
+	
+	public void update(final ScannedRobotEvent e, final State lastState) {
+		// target data
+		targetRelativeAngle = e.getBearingRadians();
+		targetAngle = robotBodyHeading + targetRelativeAngle;
+		targetVelocity = e.getVelocity();
+		final double bearing = e.getHeadingRadians() - targetAngle;
+		targetLateralVelocity = targetVelocity * Math.sin(bearing);
+		targetOrbitDirection = targetLateralVelocity > 0 ? CLOCKWISE : COUNTERCLOCKWISE;
+		targetHeading = e.getHeadingRadians();
+		// since we call scanned robot after the other two, we need += this
+		targetEnergy = e.getEnergy();
+		targetPosition = robotPosition.clone().project(targetAngle, targetDistance = e.getDistance());
+
+		// robot data
+		robotAdvancingVelocity = robotVelocity * Math.cos(e.getBearingRadians());
+		robotLateralVelocity = robotVelocity * Math.sin(e.getBearingRadians());
+		robotOrbitDirection = robotLateralVelocity > 0 ? CLOCKWISE : COUNTERCLOCKWISE;
+
+		robotForwardOrbitalAngleToWall = Tools.getRadialWallDistance(targetPosition, State.battlefieldWidth,
+				State.battlefieldHeight, targetDistance, targetAngle, robotOrbitDirection);
+		robotReverseOrbitalAngleToWall = Tools.getRadialWallDistance(targetPosition, State.battlefieldWidth,
+				State.battlefieldHeight, targetDistance, targetAngle, -robotOrbitDirection);
+
+		if (lastState != null) {
+			targetPastPosition.addAll(lastState.targetPastPosition);
+			targetPastPosition.addFirst(targetPosition);
+			
+			targetHeadingDelta = targetHeading - lastState.targetHeading;
+			targetVelocityDelta = targetVelocity - lastState.targetVelocity;
+			
+			robotTimeSinceOrbitalDirectionChange = lastState.robotTimeSinceOrbitalDirectionChange;
+			++robotTimeSinceOrbitalDirectionChange;
+			if (lastState.robotOrbitDirection != robotOrbitDirection) {
+				robotTimeSinceOrbitalDirectionChange = 0;
+			}
+
+			targetTimeSinceVelocityChange = lastState.targetTimeSinceVelocityChange;
+			++targetTimeSinceVelocityChange;
+			if (Math.abs(targetLateralVelocity - lastState.targetLateralVelocity) > 0.5) {
+				targetTimeSinceVelocityChange = 0;
+			}
+
+			if (targetPastPosition.size() < 16) {
+				targetDistanceLast16 = targetPosition.distance(targetPastPosition.getLast());
+			} else {
+				targetDistanceLast16 = targetPosition.distance(targetPastPosition.removeLast());
+			}
+		}
 	}
 }

@@ -58,10 +58,10 @@ public class Radar {
 	 */
 	private void doExecute(final State state) {
 		// Calculate the smallest turn to its last position
-		final double direction = Tools.sign(Utils.normalRelativeAngle(state.targetAngle - state.radarHeading));
+		final double direction = Tools.sign(Utils.normalRelativeAngle(state.targetAngle - state.robotRadarHeading));
 		// Recalculate the turn to get to the enemy based on the worst case
 		// movement
-		final double turn = Utils.normalRelativeAngle(state.targetAngle + 0.02 * direction - state.radarHeading);
+		final double turn = Utils.normalRelativeAngle(state.targetAngle + 0.02 * direction - state.robotRadarHeading);
 
 		bot.setTurnRadar(turn);
 
@@ -95,8 +95,8 @@ public class Radar {
 		// find center of battlefield
 		final Vector center = new Vector(State.battlefieldWidth >> 1, State.battlefieldHeight >> 1);
 		// angle to center of battlefield
-		final double angle = state.position.angleTo(center);
-		final double heading = state.radarHeading;
+		final double angle = state.robotPosition.angleTo(center);
+		final double heading = state.robotRadarHeading;
 		// determine which way requires less turn to get to the center
 		final int turnDirection = Tools.sign(Utils.normalRelativeAngle(angle - heading));
 		// turn as much as we need to cover the entire field twice
