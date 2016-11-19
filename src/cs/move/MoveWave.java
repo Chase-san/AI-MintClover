@@ -30,7 +30,7 @@ import java.awt.geom.Arc2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import cs.State;
+import cs.util.FactorRange;
 import cs.util.Line;
 import cs.util.Tools;
 import cs.util.Vector;
@@ -48,16 +48,6 @@ final class BulletShadow {
 			return true;
 		}
 		return false;
-	}
-}
-
-final class FactorRange {
-	public double min;
-	public double max;
-	
-	public FactorRange(double min, double max) {
-		this.min = min;
-		this.max = max;
 	}
 }
 
@@ -84,8 +74,8 @@ public final class MoveWave extends Wave {
 		g.setColor(Color.GREEN);
 		//for(FactorRange range : mergedShadows) {
 		for(BulletShadow shadow : unmergedShadows) {
-			double start = Math.toDegrees(shadow.range.min * escapeAngle + directAngle) - 90;
-			double extend = Math.toDegrees(shadow.range.max * escapeAngle + directAngle) - 90;
+			double start = Math.toDegrees(shadow.range.getMinimum() * escapeAngle + directAngle) - 90;
+			double extend = Math.toDegrees(shadow.range.getMaximum() * escapeAngle + directAngle) - 90;
 			g.draw(new Arc2D.Double(x - radius, y - radius, radius * 2, radius * 2, start, extend-start, Arc2D.OPEN));
 		}
 		
@@ -196,25 +186,29 @@ public final class MoveWave extends Wave {
 	}
 
 	private void mergeShadow(BulletShadow shadow) {
-		double min = shadow.range.min;
-		double max = shadow.range.max;
+		double min = shadow.range.getMinimum();
+		double max = shadow.range.getMaximum();
 
 		boolean merged = false;
 		for(FactorRange range : mergedShadows) {
-			if(!(min > range.max || max < range.min)) {
+			if(!(min > range.getMaximum() || max < range.getMinimum())) {
+				range.expand(min);
+				range.expand(max);
+				
 				//intersection
-				if(min < range.min && max > range.max) {
-					range.min = min;
-					range.max = max;
+				if(min < range.getMinimum() && max > range.getMaximum()) {
+					range.set(min, max);
 				}
-				if(max > range.min && max < range.max) {
-					if(min < range.min) {
-						range.min = min;
+				//no change in max
+				if(max > range.getMinimum() && max < range.getMaximum()) {
+					if(min < range.getMinimum()) {
+						range.setMinimum(min);
 					}
 				}
-				if(min < range.max && min > range.min) {
-					if(max > range.max) {
-						range.max = max;
+				//no change in min
+				if(min < range.getMinimum() && min > range.getMinimum()) {
+					if(max > range.getMaximum()) {
+						range.setMaximum(max);
 					}
 				}
 				merged = true;
@@ -251,24 +245,25 @@ public final class MoveWave extends Wave {
 	
 	public double calculateShadowCoverage() {
 		/* determines how large our pass through the wave is in factor space */
-		final double factorRange = maxFactor - minFactor;
-		// how much do the shadows cover our min to max risk area
+		
+		/* how much do the shadows cover our risk area */
 		double coveredRange = 0;
 		for(final FactorRange shadow : mergedShadows) {
-			if(shadow.min >= maxFactor || shadow.max <= minFactor) {
+			if(shadow.getMinimum() >= factorRange.getMaximum()
+			|| shadow.getMaximum() <= factorRange.getMinimum()) {
 				continue;
 			}
-			double min = shadow.min;
-			double max = shadow.max;
-			if(min < minFactor) {
-				min = minFactor;
+			double min = shadow.getMinimum();
+			double max = shadow.getMaximum();
+			if(min < factorRange.getMinimum()) {
+				min = factorRange.getMinimum();
 			}
-			if(max > maxFactor) {
-				max = maxFactor;
+			if(max > factorRange.getMaximum()) {
+				max = factorRange.getMaximum();
 			}
 			coveredRange += max - min;
 		}
 		
-		return coveredRange / factorRange;
+		return coveredRange / factorRange.getRange();
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2013 Robert Maupin (Chase)
+ * Copyright (c) 2012-2016 Robert Maupin (Chase)
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -22,11 +22,11 @@
  */
 package cs.util;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Arc2D;
 
 import robocode.util.Utils;
+
 
 /**
  * A class that encapsulates the common functions of a Wave.
@@ -41,13 +41,11 @@ public class Wave extends Vector {
 	public double speed;
 	public double directAngle;
 	public double escapeAngle;
-	public double minFactor = 100;
-	public double maxFactor = -100;
+	public FactorRange factorRange = new FactorRange(Byte.MAX_VALUE, Byte.MIN_VALUE);
 	protected boolean intersected = false;
 	protected boolean completed = false;
 
-	private double stateMinFactor = 0;
-	private double stateMaxFactor = 0;
+	private FactorRange stateFactorRange = new FactorRange();
 	private boolean stateIntersected = false;
 	private boolean stateCompleted = false;
 
@@ -69,13 +67,9 @@ public class Wave extends Vector {
 	 */
 	private void expandMinMaxFactors(final double[] points) {
 		for(int i = 0; i < points.length; i += 2) {
-			final double angle = Utils.normalRelativeAngle(angleTo(points[i], points[i + 1]) - directAngle) / escapeAngle;
-			if(angle < minFactor) {
-				minFactor = angle;
-			}
-			if(angle > maxFactor) {
-				maxFactor = angle;
-			}
+			final double angle = angleTo(points[i], points[i + 1]);
+			final double factor = Utils.normalRelativeAngle(angle - directAngle) / escapeAngle;
+			factorRange.expand(factor);
 		}
 	}
 
@@ -134,24 +128,22 @@ public class Wave extends Vector {
 
 	/** Resets the wave to it's initial value. */
 	public void resetState() {
-		minFactor = 100;
-		maxFactor = -100;
+		factorRange.set(Byte.MAX_VALUE, Byte.MIN_VALUE);
+		
 		intersected = false;
 		completed = false;
 	}
 
 	/** Restores the previously backed up state. */
 	public void restoreState() {
-		minFactor = stateMinFactor;
-		maxFactor = stateMaxFactor;
+		factorRange.set(stateFactorRange);
 		intersected = stateIntersected;
 		completed = stateCompleted;
 	}
 
 	/** Backs up the current state. */
 	public void storeState() {
-		stateMinFactor = minFactor;
-		stateMaxFactor = maxFactor;
+		stateFactorRange.set(factorRange);
 		stateIntersected = intersected;
 		stateCompleted = completed;
 	}
@@ -181,8 +173,12 @@ public class Wave extends Vector {
 			intersects = intersected = true;
 		}
 		// corners
-		for(final double[] pnt : new double[][] { { target.x - 18, target.y - 18 }, { target.x + 18, target.y - 18 },
-				{ target.x - 18, target.y + 18 }, { target.x + 18, target.y + 18 } }) {
+		for(final double[] pnt : new double[][] {
+			{ target.x - 18, target.y - 18 },
+			{ target.x + 18, target.y - 18 },
+			{ target.x - 18, target.y + 18 },
+			{ target.x + 18, target.y + 18 } }) {
+			
 			final double dist = distanceSq(pnt[0], pnt[1]);
 			if(dist < radius2 * radius2 && dist > radius * radius) {
 				expandMinMaxFactors(pnt);

@@ -176,7 +176,7 @@ public class Move {
 	 */
 	private double calculateWaveRisk(final MoveWave wave, final Vector lastPosition) {
 		// check risk
-		double centerGF = (wave.minFactor + wave.maxFactor) / 2.0;
+		double centerGF = wave.factorRange.getCenter();
 		double waveRisk = 0;
 		
 		/* bullet shadows apply a weight to our danger prediction */
@@ -199,7 +199,8 @@ public class Move {
 			 * 80% of the risk comes directly if the predicted factor is on top
 			 * our pass through the wave
 			 */
-			if(wave.minFactor < gf && wave.maxFactor > gf) {
+			if(wave.factorRange.getMinimum() < gf
+			&& wave.factorRange.getMaximum() > gf) {
 				risk += 0.8;
 			}
 

@@ -148,12 +148,12 @@ public class Gun {
 	/**
 	 * Processes a wave that has completed its pass past the target.
 	 * 
-	 * @param w
+	 * @param wave
 	 *            The target to process
 	 */
-	private void processCompletedWave(final GunWave w) {
-		final GunFormula data = w.data;
-		data.guessfactor = (w.minFactor + w.maxFactor) / 2.0;
+	private void processCompletedWave(final GunWave wave) {
+		final GunFormula data = wave.data;
+		data.guessfactor = wave.factorRange.getCenter();
 		tree.addPoint(data.getArray(), data);
 	}
 
