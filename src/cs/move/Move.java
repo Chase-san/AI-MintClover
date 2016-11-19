@@ -538,16 +538,15 @@ public class Move {
 		// ERROR Reporting
 		Vector bulletPosition = new Vector(bullet.getX(), bullet.getY());
 		System.err.printf("Bullet%s Collision Wave Detection Error\n", bulletCollision ? "/Bullet" : "");
-		System.err.printf("\tBullet Power: %.4f\n", bullet.getPower());
+		System.err.printf("\tBullet Power: %f\n", bullet.getPower());
 		System.err.printf("\tBullet Position: %.2f %.2f\n", bulletPosition.x, bulletPosition.y);
 		System.err.println("\t-Waves-");
 		for(MoveWave wave : waves) {
 			double bulletWaveDistanceSq = wave.distanceSq(bulletPosition);
 
-			System.err.printf("\t\tPower %.4f\n", wave.power);
+			System.err.printf("\t\tPower %f\n", wave.power);
 			for(int i = -2; i <= 0; ++i) {
-				double waveRadiusSq = wave.getRadius(time + i);
-				waveRadiusSq *= waveRadiusSq;
+				double waveRadiusSq = Tools.sqr(wave.getRadius(time + i));
 				System.err.printf("\t\t\t%2d   Offset  %.2f\n", i, bulletWaveDistanceSq - waveRadiusSq);
 			}
 		}
