@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2013 Robert Maupin (Chase)
+ * Copyright (c) 2012-2016 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -23,7 +23,6 @@
 package cs.gun;
 
 import cs.State;
-import cs.TargetState;
 import cs.util.Tools;
 
 /**
@@ -38,7 +37,7 @@ public class GunFormula {
 	public double weight = 0.1;
 	public double guessfactor;
 
-	public GunFormula(GunWave wave, TargetState state) {
+	public GunFormula(GunWave wave, State state) {
 		final double bulletFlightTime = state.targetDistance / wave.speed;
 		point = new double[] {
 				Math.min(3, wave.power) / 3,

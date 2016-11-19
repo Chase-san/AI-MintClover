@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2013 Robert Maupin (Chase)
+ * Copyright (c) 2012-2016 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -56,7 +56,7 @@ public class Radar {
 	 * @param state
 	 *            The current robot and enemy robot state.
 	 */
-	private void doExecute(final TargetState state) {
+	private void doExecute(final State state) {
 		// Calculate the smallest turn to its last position
 		final double direction = Tools.sign(Utils.normalRelativeAngle(state.targetAngle - state.radarHeading));
 		// Recalculate the turn to get to the enemy based on the worst case
@@ -111,7 +111,7 @@ public class Radar {
 	 * @param state
 	 *            The current robot and enemy robot state.
 	 */
-	public void execute(final TargetState state) {
+	public void execute(final State state) {
 		//do something special if this is the first scan
 		if (isPreInitialScan) {
 			isPreInitialScan = false;

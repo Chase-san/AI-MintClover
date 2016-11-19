@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2013 Robert Maupin (Chase)
+ * Copyright (c) 2012-2016 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -47,8 +47,8 @@ import cs.util.Rectangle;
  * @author Robert Maupin (Chase)
  */
 public final class Mint extends RobotBase {
-	public TargetState lastState;
-	public TargetState state;
+	public State lastState;
+	public State state;
 	public Radar radar = new Radar(this);
 	public Gun gun = new Gun(this);
 	public Move move = new Move(this);
@@ -217,7 +217,7 @@ public final class Mint extends RobotBase {
 	@Override
 	public void onStatus(final StatusEvent e) {
 		lastState = state;
-		state = new TargetState(e, lastState);
+		state = new State(e, lastState);
 		if (0 == state.time) {
 			if (0 == state.roundNum) {
 				doBattleStart();

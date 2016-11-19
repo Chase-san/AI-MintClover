@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2013 Robert Maupin (Chase)
+ * Copyright (c) 2012-2016 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
  */
 package cs.move;
 
-import cs.TargetState;
+import cs.State;
 import cs.util.Tools;
 
 /**
@@ -43,7 +43,7 @@ public class MoveFormula {
 		guessfactor = 0;
 	}
 
-	public MoveFormula(TargetState state) {
+	public MoveFormula(State state) {
 		point = new double[] {
 				Math.abs(state.lateralVelocity) / 8.0,
 				(state.advancingVelocity + 8.0) / 16.0,

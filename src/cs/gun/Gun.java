@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2013 Robert Maupin (Chase)
+ * Copyright (c) 2012-2016 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -33,7 +33,6 @@ import ags.utils.KdTree;
 import ags.utils.KdTree.Entry;
 import cs.Mint;
 import cs.State;
-import cs.TargetState;
 import cs.util.Tools;
 import cs.util.Vector;
 
@@ -50,7 +49,7 @@ public class Gun {
 	}
 	private final LinkedList<GunWave> waves = new LinkedList<GunWave>();
 	private final Mint bot;
-	private TargetState state;
+	private State state;
 	private Vector next;
 
 	public static Double power = null;
@@ -174,7 +173,7 @@ public class Gun {
 	 * @param state
 	 *            The current calculated system state.
 	 */
-	public void execute(final TargetState state) {
+	public void execute(final State state) {
 		// don't bother if we don't know where the enemy is
 		if (state.targetPosition == null) {
 			return;

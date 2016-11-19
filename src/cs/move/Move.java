@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2013 Robert Maupin (Chase)
+ * Copyright (c) 2012-2016 Robert Maupin (Chase)
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -36,7 +36,6 @@ import robocode.Rules;
 import robocode.util.Utils;
 import cs.Mint;
 import cs.State;
-import cs.TargetState;
 import cs.util.Simulate;
 import cs.util.Tools;
 import cs.util.Vector;
@@ -69,9 +68,9 @@ public class Move {
 	protected MovePath path;
 
 	private LinkedList<Bullet> bullets = new LinkedList<Bullet>();
-	private TargetState state;
-	private TargetState lastState;
-	private TargetState lastLastState;
+	private State state;
+	private State lastState;
+	private State lastLastState;
 	private WavelessMove waveless;
 	private LinkedList<MoveWave> waves = new LinkedList<MoveWave>();
 	private Vector nextPosition = null;
@@ -323,7 +322,7 @@ public class Move {
 	 * @param state
 	 *            The current calculated system state.
 	 */
-	public void execute(final TargetState state) {
+	public void execute(final State state) {
 		if(waveless == null) {
 			waveless = new WavelessMove(bot, this);
 		}

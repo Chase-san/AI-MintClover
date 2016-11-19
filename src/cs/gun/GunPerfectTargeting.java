@@ -22,7 +22,7 @@
  */
 package cs.gun;
 
-import cs.TargetState;
+import cs.State;
 import cs.util.FactorRange;
 import cs.util.Simulate;
 import robocode.util.Utils;
@@ -48,7 +48,7 @@ public class GunPerfectTargeting {
 	 * @param state
 	 * @return
 	 */
-	public static double getPerfectAim(GunWave wave, TargetState state) {
+	public static double getPerfectAim(GunWave wave, State state) {
 		double distance = wave.distanceSq(state.targetPosition);
 		/*
 		 * If the enemy is further away then 30 turns there is no way that
@@ -79,7 +79,7 @@ public class GunPerfectTargeting {
 	 * @param direction The desired target movement direction.
 	 * @return the factor range min/max
 	 */
-	protected static FactorRange getRangeMinMax(GunWave wave, TargetState state, int direction) {
+	protected static FactorRange getRangeMinMax(GunWave wave, State state, int direction) {
 		Simulate sim = new Simulate();
 		sim.position = state.targetPosition.clone();
 		sim.heading = state.targetHeading;

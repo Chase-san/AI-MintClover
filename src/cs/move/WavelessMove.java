@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2012-2016 Robert Maupin (Chase)
+ * 
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ * 
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ * 
+ *    1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 
+ *    2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 
+ *    3. This notice may not be removed or altered from any source
+ *    distribution.
+ */
 package cs.move;
 
 import java.awt.geom.Line2D;
@@ -6,7 +28,6 @@ import robocode.Rules;
 import robocode.util.Utils;
 import cs.Mint;
 import cs.State;
-import cs.TargetState;
 import cs.util.Tools;
 import cs.util.Vector;
 
@@ -15,8 +36,8 @@ public class WavelessMove {
 	private final Mint bot;
 	private final Move move;
 
-	private TargetState state;
-	private TargetState lastState;
+	private State state;
+	private State lastState;
 
 	public WavelessMove(final Mint cntr, final Move mvnt) {
 		move = mvnt;
@@ -148,7 +169,7 @@ public class WavelessMove {
 		return pos;
 	}
 
-	public void update(final TargetState state) {
+	public void update(final State state) {
 		lastState = this.state;
 		this.state = state;
 	}
