@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Robert Maupin (Chase)
+ * Copyright (c) 2016-2017 Robert Maupin (Chase)
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -23,32 +23,33 @@
 package cs.util;
 
 /**
- * A range of Guessfactors.
+ * A range of numbers.
+ * 
  * @author Robert Maupin (Chase)
  *
  */
-public class FactorRange {
+public class NumberRange {
 	private double max;
 	private double min;
 	
 	/**
 	 * Initializes the factor range to zeros.
 	 */
-	public FactorRange() {
+	public NumberRange() {
 		set(0, 0);
 	}
 	
 	/**
-	 * Initializes this factor range with the given minimums and maximums.
+	 * Initializes this number range with the given minimums and maximums.
 	 * @param min minimum value
 	 * @param max maximum value
 	 */
-	public FactorRange(double min, double max) {
+	public NumberRange(double min, double max) {
 		set(min, max);
 	}
 	
 	/**
-	 * Updates the minimum and maximum factors in this range to include the given factor.
+	 * Updates the minimum and maximum number in this range to include the given number.
 	 * @param factor
 	 */
 	public void expand(double factor) {
@@ -61,15 +62,15 @@ public class FactorRange {
 	}
 	
 	/**
-	 * Returns the factor in the middle of this factor range.
-	 * @return center factor
+	 * Returns the number in the middle of this number range.
+	 * @return center number
 	 */
 	public double getCenter() {
 		return (this.min + this.max) / 2.0;
 	}
 	
 	/**
-	 * Gets the maximum value of this factor range.
+	 * Gets the maximum value of this number range.
 	 * @return maximum value
 	 */
 	public double getMaximum() {
@@ -77,7 +78,7 @@ public class FactorRange {
 	}
 	
 	/**
-	 * Gets the minimum value of this factor range.
+	 * Gets the minimum value of this number range.
 	 * @return minimum value
 	 */
 	public double getMinimum() {
@@ -85,15 +86,15 @@ public class FactorRange {
 	}
 	
 	/**
-	 * Gets the distance between the minimum and maximum factors of this range.
-	 * @return range between factors
+	 * Gets the distance between the minimum and maximum number of this range.
+	 * @return range between number
 	 */
 	public double getRange() {
 		return this.max - this.min;
 	}
 	
 	/**
-	 * Sets the minimum and maximum values of this factor range.
+	 * Sets the minimum and maximum values of this number range.
 	 * @param min minimum value
 	 * @param max maximum value
 	 */
@@ -103,7 +104,7 @@ public class FactorRange {
 	}
 	
 	/**
-	 * Sets the minimum values of this factor range.
+	 * Sets the minimum values of this number range.
 	 * @param min minimum value
 	 */
 	public void setMinimum(double min) {
@@ -111,7 +112,7 @@ public class FactorRange {
 	}
 	
 	/**
-	 * Sets the maximum values of this factor range.
+	 * Sets the maximum values of this number range.
 	 * @param min maximum value
 	 */
 	public void setMaximum(double max) {
@@ -119,10 +120,10 @@ public class FactorRange {
 	}
 	
 	/**
-	 * Sets the values of this range to equal the given factor range.
-	 * @param range given factor range
+	 * Sets the values of this range to equal the given number range.
+	 * @param range given number range
 	 */
-	public void set(FactorRange range) {
+	public void set(NumberRange range) {
 		this.min = range.min;
 		this.max = range.max;
 	}

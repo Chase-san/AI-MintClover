@@ -30,7 +30,7 @@ import java.awt.geom.Arc2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import cs.util.FactorRange;
+import cs.util.NumberRange;
 import cs.util.Line;
 import cs.util.Tools;
 import cs.util.Vector;
@@ -40,7 +40,7 @@ import robocode.util.Utils;
 
 final class BulletShadow {
 	public Bullet b;
-	public FactorRange range;
+	public NumberRange range;
 
 	public final boolean equals(Bullet q) {
 		if(Math.abs(b.getHeadingRadians() - q.getHeadingRadians()) < 0.001 && Math.abs(b.getPower() - q.getPower()) < 0.001
@@ -56,7 +56,7 @@ public final class MoveWave extends Wave {
 	private static final double MAX_ESCAPE_FACTOR = 1.2;
 	
 	private ArrayList<BulletShadow> unmergedShadows = new ArrayList<BulletShadow>();
-	private ArrayList<FactorRange> mergedShadows = new ArrayList<FactorRange>();
+	private ArrayList<NumberRange> mergedShadows = new ArrayList<NumberRange>();
 	public MoveFormula formula;
 	public final boolean isHeatWave;
 	
@@ -72,7 +72,7 @@ public final class MoveWave extends Wave {
 		Stroke oldStroke = g.getStroke();
 		g.setStroke(new BasicStroke(4));
 		g.setColor(Color.GREEN);
-		for(FactorRange range : mergedShadows) {
+		for(NumberRange range : mergedShadows) {
 			double start = Math.toDegrees(range.getMinimum() * escapeAngle + directAngle) - 90;
 			double extend = Math.toDegrees(range.getMaximum() * escapeAngle + directAngle) - 90;
 			
@@ -90,7 +90,7 @@ public final class MoveWave extends Wave {
 	}
 
 	private void calculateShadow(Bullet b, Line line, long time) {
-		FactorRange range = new FactorRange(Short.MAX_VALUE, Short.MIN_VALUE);
+		NumberRange range = new NumberRange(Short.MAX_VALUE, Short.MIN_VALUE);
 
 		boolean intersect = false;
 
@@ -175,7 +175,7 @@ public final class MoveWave extends Wave {
 		double max = shadow.range.getMaximum();
 
 		boolean merged = false;
-		for(FactorRange range : mergedShadows) {
+		for(NumberRange range : mergedShadows) {
 			if(!(min > range.getMaximum() || max < range.getMinimum())) {
 				//intersection
 				if(min < range.getMinimum() && max > range.getMaximum()) {
@@ -230,7 +230,7 @@ public final class MoveWave extends Wave {
 		
 		/* how much do the shadows cover our risk area */
 		double coveredRange = 0;
-		for(final FactorRange shadow : mergedShadows) {
+		for(final NumberRange shadow : mergedShadows) {
 			if(shadow.getMinimum() >= factorRange.getMaximum()
 			|| shadow.getMaximum() <= factorRange.getMinimum()) {
 				continue;

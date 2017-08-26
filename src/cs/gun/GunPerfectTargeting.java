@@ -23,7 +23,7 @@
 package cs.gun;
 
 import cs.State;
-import cs.util.FactorRange;
+import cs.util.NumberRange;
 import cs.util.Simulation;
 import robocode.util.Utils;
 
@@ -59,8 +59,8 @@ public class GunPerfectTargeting {
 			return Double.NaN;
 		}
 		
-		FactorRange fwdRange = getRangeMinMax(wave, state, 1);
-		FactorRange revRange = getRangeMinMax(wave, state, -1);
+		NumberRange fwdRange = getRangeMinMax(wave, state, 1);
+		NumberRange revRange = getRangeMinMax(wave, state, -1);
 		
 		if(revRange.getMinimum() > fwdRange.getMaximum()
 		|| fwdRange.getMinimum() > revRange.getMaximum()) {
@@ -79,7 +79,7 @@ public class GunPerfectTargeting {
 	 * @param direction The desired target movement direction.
 	 * @return the factor range min/max
 	 */
-	protected static FactorRange getRangeMinMax(GunWave wave, State state, int direction) {
+	protected static NumberRange getRangeMinMax(GunWave wave, State state, int direction) {
 		Simulation sim = new Simulation();
 		sim.position = state.targetPosition.clone();
 		sim.heading = state.targetHeading;
@@ -101,7 +101,7 @@ public class GunPerfectTargeting {
 			sim.step();
 		}
 		
-		FactorRange range = new FactorRange();
+		NumberRange range = new NumberRange();
 		range.set(wave.factorRange);
 		
 		wave.restoreState();

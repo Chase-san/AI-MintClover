@@ -41,11 +41,11 @@ public class Wave extends Vector {
 	public double speed;
 	public double directAngle;
 	public double escapeAngle;
-	public FactorRange factorRange = new FactorRange(Byte.MAX_VALUE, Byte.MIN_VALUE);
+	public NumberRange factorRange = new NumberRange(Byte.MAX_VALUE, Byte.MIN_VALUE);
 	protected boolean intersected = false;
 	protected boolean completed = false;
 
-	private FactorRange stateFactorRange = new FactorRange();
+	private NumberRange stateFactorRange = new NumberRange();
 	private boolean stateIntersected = false;
 	private boolean stateCompleted = false;
 
