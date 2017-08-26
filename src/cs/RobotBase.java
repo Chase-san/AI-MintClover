@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2013 Robert Maupin (Chase)
+ * Copyright (c) 2012-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -60,6 +60,13 @@ import robocode.robotinterfaces.peer.IBasicRobotPeer;
  * 
  */
 public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvancedEvents {
+	/**
+	 * This class is used to get the "end of turn" event to happen after all other
+	 * events have fired for the turn. This allows my robots to completely ignore
+	 * the run method, and not require an infinite loop.
+	 * 
+	 * @author Robert Maupin (Chase)
+	 */
 	private static class TurnEndedEventCondition extends Condition {
 		public TurnEndedEventCondition() {
 			super("TurnEndedEventCondition", 0);
@@ -71,16 +78,21 @@ public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvan
 		}
 	}
 
-	public PrintStream out;
+	/**
+	 * Graphics for drawing to the screen. This is handled by the RobotBase and only
+	 * needs to be drawn to.
+	 */
 	public Graphics2D g;
+	
+	/**
+	 * This is the debug output stream for the robot.
+	 */
+	public PrintStream out;
+	
 	private IAdvancedRobotPeer peer;
 
 	public final void execute() {
 		peer.execute();
-	}
-
-	protected IAdvancedRobotPeer getPeer() {
-		return peer;
 	}
 
 	@Override
@@ -101,6 +113,10 @@ public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvan
 		return peer.getBattleFieldWidth();
 	}
 
+	public final File getDataFile(String filename) {
+		return peer.getDataFile(filename);
+	}
+
 	public final Graphics2D getGraphics() {
 		return peer.getGraphics();
 	}
@@ -113,8 +129,8 @@ public abstract class RobotBase implements IAdvancedRobot, IBasicEvents3, IAdvan
 		return peer.getName();
 	}
 
-	public final File getDataFile(String filename) {
-		return peer.getDataFile(filename);
+	protected IAdvancedRobotPeer getPeer() {
+		return peer;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2016 Robert Maupin (Chase)
+ * Copyright (c) 2012-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -47,13 +47,13 @@ import cs.util.Rectangle;
  * @author Robert Maupin (Chase)
  */
 public final class Mint extends RobotBase {
-	public State lastState;
-	public State state;
-	public Radar radar = new Radar(this);
-	public Gun gun = new Gun(this);
-	public Move move = new Move(this);
 	public static boolean doFire = true;
 	public static boolean doMove = true;
+	public Gun gun = new Gun(this);
+	public State lastState;
+	public Move move = new Move(this);
+	public Radar radar = new Radar(this);
+	public State state;
 
 	/**
 	 * Called when the battle is started. Sets basic static properties.
@@ -83,6 +83,25 @@ public final class Mint extends RobotBase {
 	}
 
 	/**
+	 * This performs a simple little dance. This is called directly by the movement
+	 * and not in this robot method.
+	 */
+	public void doVictoryDance() {
+		// we want to make sort of a shamrock type victory dance
+		if ((state.time & 1) == 0) {
+			setScanColor(Color.CYAN);
+			setTurnBody(4);
+			setTurnGun(4);
+			setTurnRadar(4);
+		} else {
+			setScanColor(Color.GREEN);
+			setTurnBody(0);
+			setTurnGun(0);
+			setTurnRadar(Math.PI / 16.0);
+		}
+	}
+
+	/**
 	 * Load robot properties from a file.
 	 */
 	private void loadProperties() {
@@ -102,7 +121,7 @@ public final class Mint extends RobotBase {
 							+ "# robot.gun\n"
 							+ "#    0    Disable Gun\n"
 							+ "#    1    Normal\n"
-							+ "#    2    Power 3 Bullets\n"
+							+ "#    2    Reference Mode (Power 3 Bullets)\n"
 							+ "# robot.move\n"
 							+ "#    0    Disable Movement\n"
 							+ "#    1    Normal\n"
@@ -132,9 +151,10 @@ public final class Mint extends RobotBase {
 				System.out.println("Gun: Disabled");
 				doFire = false;
 				break;
-			case 2: //power 3 bullets
+			case 2: //power 3 bullets, fire until disabled
 				System.out.println("Gun: Reference");
-				Gun.power = 3.0;
+				Gun.overridePower = 3.0;
+				Gun.overrideFireUntilDisabled = true;
 				break;
 			}
 			
@@ -151,16 +171,24 @@ public final class Mint extends RobotBase {
 				break;
 			case 2: //minimum risk
 				System.out.println("Movement: Minimum Risk");
-				Move.doSurf = false;
+				Move.overrideMinRiskOnly = true;
 				break;
 			case 3: //sandbox flattener
 				System.out.println("Movement: Sandbox Flattener");
-				Move.doSandbox = true;
+				Move.overrideSandbox = true;
 				break;
 			}
 		} catch(Exception e) {}
 	}
 
+	/**
+	 * Called when we fire a bullet.
+	 * @param b bullet that was fired
+	 */
+	public void onBulletFired(final Bullet b) {
+		move.onBulletFired(b);
+	}
+	
 	/**
 	 * Called when our bullet hits an enemy.
 	 */
@@ -168,6 +196,15 @@ public final class Mint extends RobotBase {
 	public void onBulletHit(final BulletHitEvent e) {
 		if(lastState != null) {
 			lastState.update(e);
+		}
+	}
+	
+	/**
+	 * Called when one of our bullets collide with an enemies bullet.
+	 */
+	public void onBulletHitBullet(final BulletHitBulletEvent e) {
+		if (doMove) {
+			move.onBulletHitBullet(e);
 		}
 	}
 
@@ -183,23 +220,6 @@ public final class Mint extends RobotBase {
 		if (doMove) {
 			move.onHitByBullet(e);
 		}
-	}
-	
-	/**
-	 * Called when one of our bullets collide with an enemies bullet.
-	 */
-	public void onBulletHitBullet(final BulletHitBulletEvent e) {
-		if (doMove) {
-			move.onBulletHitBullet(e);
-		}
-	}
-	
-	/**
-	 * Called when we fire a bullet.
-	 * @param b bullet that was fired
-	 */
-	public void onBulletFired(final Bullet b) {
-		move.onBulletFired(b);
 	}
 
 	/**
@@ -219,7 +239,7 @@ public final class Mint extends RobotBase {
 		lastState = state;
 		state = new State(e, lastState);
 		if (0 == state.time) {
-			if (0 == state.roundNum) {
+			if (0 == state.round) {
 				doBattleStart();
 			}
 			doRoundStart();
@@ -245,20 +265,5 @@ public final class Mint extends RobotBase {
 			}
 		}
 		execute();
-	}
-
-	public void doVictoryDance() {
-		// we want to make sort of a shamrock type victory dance
-		if ((state.time & 1) == 0) {
-			setScanColor(Color.CYAN);
-			setTurnBody(4);
-			setTurnGun(4);
-			setTurnRadar(4);
-		} else {
-			setScanColor(Color.GREEN);
-			setTurnBody(0);
-			setTurnGun(0);
-			setTurnRadar(Math.PI / 16.0);
-		}
 	}
 }

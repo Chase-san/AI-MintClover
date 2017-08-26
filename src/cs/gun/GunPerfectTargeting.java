@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2016 Robert Maupin (Chase)
+ * Copyright (c) 2012-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@ package cs.gun;
 
 import cs.State;
 import cs.util.FactorRange;
-import cs.util.Simulate;
+import cs.util.Simulation;
 import robocode.util.Utils;
 
 /**
@@ -80,7 +80,7 @@ public class GunPerfectTargeting {
 	 * @return the factor range min/max
 	 */
 	protected static FactorRange getRangeMinMax(GunWave wave, State state, int direction) {
-		Simulate sim = new Simulate();
+		Simulation sim = new Simulation();
 		sim.position = state.targetPosition.clone();
 		sim.heading = state.targetHeading;
 		sim.velocity = state.targetVelocity;

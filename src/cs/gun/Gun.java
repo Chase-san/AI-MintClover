@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2016 Robert Maupin (Chase)
+ * Copyright (c) 2012-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -52,8 +52,24 @@ public class Gun {
 	private State state;
 	private Vector next;
 
-	public static Double power = null;
+	/**
+	 * This value is used to override the built in power calculation and use a set
+	 * power instead.
+	 */
+	public static Double overridePower = null;
+	
+	/**
+	 * Forces the gun to fire until it is disabled, rather than not firing the last
+	 * of it's power to prevent it.
+	 */
+	public static boolean overrideFireUntilDisabled = false;
 
+	/**
+	 * Initializes this gun class with the Mint robot.
+	 * 
+	 * @param cntr
+	 *            Mint Robot
+	 */
 	public Gun(final Mint cntr) {
 		bot = cntr;
 	}
@@ -79,7 +95,7 @@ public class Gun {
 		wave.escapeAngle = Math.asin(8.0 / wave.speed) * state.targetOrbitDirection;
 		return wave;
 	}
-	
+
 	/**
 	 * Calculates the best aim for our gun.
 	 * 
@@ -88,9 +104,9 @@ public class Gun {
 	private double getBestAngleOffset(final GunWave wave) {
 		if (state.robotGunHeat / State.coolingRate > 4)
 			return 0;
-		
+
 		double perfect = GunPerfectTargeting.getPerfectAim(wave, state);
-		if(!Double.isNaN(perfect)) {
+		if (!Double.isNaN(perfect)) {
 			bot.out.println("Perfect Aim: " + perfect);
 			return perfect;
 		}
@@ -127,8 +143,8 @@ public class Gun {
 	 * Determines the power the gun should fire at.
 	 */
 	private double getBulletPower() {
-		if (power != null) {
-			return power;
+		if (overridePower != null) {
+			return overridePower;
 		}
 
 		double bulletPower = 1.95;
@@ -166,7 +182,6 @@ public class Gun {
 		this.next = next;
 	}
 
-	
 	/**
 	 * Called every turn to update and execute the gun.
 	 * 
@@ -181,31 +196,33 @@ public class Gun {
 		this.state = state;
 
 		updateWaves();
-		
+
 		// calculate some basic gun stuff
 		final double angle = next.angleTo(state.targetPosition);
 		final double bulletPower = getBulletPower();
 		final GunWave wave = createWave(bulletPower, angle);
 		wave.data = new GunFormula(wave, state);
 		wave.data.weight = 0.1;
-		
+
 		// turn the gun (if < 5 turns till fire)
 		double offset = 0;
-		if(state.robotGunHeat/State.coolingRate < 5) {
-			//get the aim offset
+		if (state.robotGunHeat / State.coolingRate < 5) {
+			// get the aim offset
 			offset = getBestAngleOffset(wave);
 		}
 		bot.setTurnGun(Utils.normalRelativeAngle(angle - state.robotGunHeading + offset));
-		
-		if(state.robotEnergy > bulletPower && Math.abs(state.robotGunTurnRemaining) < 0.001) {
+
+		boolean energyToFireOk = overrideFireUntilDisabled || state.robotEnergy > bulletPower;
+
+		if (energyToFireOk && Math.abs(state.robotGunTurnRemaining) < 0.001) {
 			Bullet b = bot.setFire(bulletPower);
-			
+
 			// fire gun and create new waves
 			if (b != null) {
 				wave.data.weight = 1.0;
 			}
 		}
-		
+
 		waves.add(wave);
 	}
 

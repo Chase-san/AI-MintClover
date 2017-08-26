@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2016 Robert Maupin (Chase)
+ * Copyright (c) 2012-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -31,13 +31,16 @@ import robocode.Rules;
 import robocode.ScannedRobotEvent;
 import robocode.StatusEvent;
 import cs.util.Rectangle;
-import cs.util.Simulate;
+import cs.util.Simulation;
 import cs.util.Tools;
 import cs.util.Vector;
 
 /**
  * A state of a single round. This class is a bit of a mess. But it performs all
- * the data gathering required by the robot.
+ * the data gathering required by the robot. I found this to be more desirable
+ * than calculating it as needed, as if I needed it somewhere else I would have
+ * to then recalculate the value. This way I calculate the data I need once and
+ * use that data to feed targeting, movement and radar.
  * 
  * @author Robert Maupin (Chase)
  * 
@@ -45,18 +48,56 @@ import cs.util.Vector;
 public class State {
 	public static final int COUNTERCLOCKWISE = -1;
 	public static final int CLOCKWISE = 1;
-	
+
+	/**
+	 * This is the set of coordinates our robot or a target robot could reach, this
+	 * means it is the battle field minus a margin of half the robots width (18
+	 * pixels) on each side.
+	 */
 	public static Rectangle battlefield;
+
+	/**
+	 * This is the set of coordinates our robot considers for waveless movement.
+	 * Unlike the battlefield which uses a margin of half the robots width. The
+	 * margins on this field are more exaggerated so that locations near the walls
+	 * are not considered during minimum risk movement.
+	 */
 	public static Rectangle wavelessField;
-	
+
+	/**
+	 * This is the amount every turn that the gun heat drops every turn. At 0 the
+	 * gun is capable of firing again.
+	 */
 	public static double coolingRate;
+
+	/**
+	 * This is the raw height of the battlefield. Usually 600.
+	 */
 	public static int battlefieldHeight;
+
+	/**
+	 * This is the raw width of the battlefield. Usually 800.
+	 */
 	public static int battlefieldWidth;
 
+	/**
+	 * The number of targets on the field. This should be either 0 or 1. If it is
+	 * more than 1 then we are in a melee battle which the robot is not designed to
+	 * handle.
+	 */
 	public final int others;
-	public final int roundNum;
+
+	/**
+	 * This is the current round number.
+	 */
+	public final int round;
+
+	/**
+	 * This is the current turn or tick number. This is in the minimum time step
+	 * that a robot is capable of doing anything.
+	 */
 	public final long time;
-	
+
 	public ArrayDeque<Vector> robotPastPosition = new ArrayDeque<Vector>();
 	public double robotAdvancingVelocity;
 	public double robotBodyHeading;
@@ -70,14 +111,14 @@ public class State {
 	public double robotGunTurnRemaining;
 	public double robotLateralVelocity;
 	public int robotOrbitDirection;
-	
+
 	public Vector robotPosition;
 	public double robotRadarHeading;
 	public double robotReverseOrbitalAngleToWall;
 	public double robotVelocity;
 	public double robotVelocityDelta;
 	public long robotTimeSinceOrbitalDirectionChange;
-	
+
 	public ArrayDeque<Vector> targetPastPosition = new ArrayDeque<Vector>();
 	public double targetAngle;
 	public double targetDistance;
@@ -87,17 +128,27 @@ public class State {
 	public double targetHeadingDelta;
 	public double targetLateralVelocity;
 	public int targetOrbitDirection;
-	
+
 	public Vector targetPosition = null;
 	public double targetRelativeAngle;
 	public double targetVelocity;
 	public double targetVelocityDelta;
 	public long targetTimeSinceVelocityChange;
 
+	/**
+	 * Constructs a new state from the current status event and the previous state.
+	 * The previous state may be null if this is the first state for the robot in a
+	 * given round.
+	 * 
+	 * @param e
+	 *            The status event for the turn.
+	 * @param lastState
+	 *            The state for the previous turn.
+	 */
 	public State(final StatusEvent e, final State lastState) {
 		final RobotStatus status = e.getStatus();
 		time = status.getTime();
-		roundNum = status.getRoundNum();
+		round = status.getRoundNum();
 		robotPosition = new Vector(status.getX(), status.getY());
 		robotBodyHeading = status.getHeadingRadians();
 		robotGunHeading = status.getGunHeadingRadians();
@@ -113,7 +164,7 @@ public class State {
 		if (lastState != null) {
 			robotPastPosition.addAll(lastState.robotPastPosition);
 			robotPastPosition.addFirst(robotPosition);
-			
+
 			robotBodyHeadingDelta = robotBodyHeading - lastState.robotBodyHeading;
 			robotVelocityDelta = robotVelocity - lastState.robotVelocity;
 
@@ -124,30 +175,62 @@ public class State {
 			}
 		}
 	}
-	
-	public Simulate simulateEnemyMovement() {
-		Simulate sim = new Simulate();
+
+	/**
+	 * This method calculates where the target will be next turn should it continue
+	 * as it has from the previous turn. It takes into consideration the targets
+	 * location, velocity, heading, and heading change to determine the next
+	 * location.
+	 * 
+	 * @return The simulation for this next position, mostly in case we want to
+	 *         simulate more positions into the future with the given data.
+	 */
+	public Simulation simulateTargetMovement() {
+		Simulation sim = new Simulation();
 		sim.position.setLocation(targetPosition);
 		sim.velocity = targetVelocity;
 		sim.heading = targetHeading;
 		sim.angleToTurn = targetHeadingDelta;
-		sim.direction = (int)Math.signum(sim.velocity);
-		//if the target is slowing down
-		if(targetVelocityDelta < 0) {
+		sim.direction = (int) Math.signum(sim.velocity);
+		// if the target is slowing down
+		if (targetVelocityDelta < 0) {
 			sim.direction = -sim.direction;
 		}
 		sim.step();
 		return sim;
 	}
 
+	/**
+	 * Updates the targets energy when a bullet hits them.
+	 * 
+	 * @param e
+	 *            the bullet hit event
+	 */
 	public void update(final BulletHitEvent e) {
 		targetEnergy -= Rules.getBulletDamage(e.getBullet().getPower());
 	}
 
+	/**
+	 * Updates the targets energy when we are hit by a bullet.
+	 * 
+	 * @param e
+	 *            the hit by bullet event
+	 */
 	public void update(final HitByBulletEvent e) {
 		targetEnergy += Rules.getBulletHitBonus(e.getPower());
 	}
-	
+
+	/**
+	 * Updates the state after we scan the target. This data updates all the target
+	 * related information as well our relational data to them. This includes
+	 * direction, advancing/lateral velocity and our orbit distance to forward and
+	 * reverse walls.
+	 * 
+	 * @param e
+	 *            The scanned robot event
+	 * @param lastState
+	 *            The state for the previous turn.
+	 */
 	public void update(final ScannedRobotEvent e, final State lastState) {
 		// target data
 		targetRelativeAngle = e.getBearingRadians();
@@ -174,10 +257,10 @@ public class State {
 		if (lastState != null) {
 			targetPastPosition.addAll(lastState.targetPastPosition);
 			targetPastPosition.addFirst(targetPosition);
-			
+
 			targetHeadingDelta = targetHeading - lastState.targetHeading;
 			targetVelocityDelta = targetVelocity - lastState.targetVelocity;
-			
+
 			robotTimeSinceOrbitalDirectionChange = lastState.robotTimeSinceOrbitalDirectionChange;
 			++robotTimeSinceOrbitalDirectionChange;
 			if (lastState.robotOrbitDirection != robotOrbitDirection) {

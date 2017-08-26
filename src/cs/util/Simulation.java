@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011 Robert Maupin (Chase)
+ * Copyright (c) 2011-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -31,7 +31,7 @@ import robocode.util.Utils;
  * 
  * @author Robert Maupin (Chase)
  */
-public final class Simulate {
+public final class Simulation {
 	public Vector position;
 	public double heading;
 	public double velocity;
@@ -43,7 +43,7 @@ public final class Simulate {
 	/**
 	 * Create a new Simulate class
 	 */
-	public Simulate() {
+	public Simulation() {
 		position = new Vector();
 		maxVelocity = Rules.MAX_VELOCITY;
 		direction = 1;
@@ -60,8 +60,8 @@ public final class Simulate {
 	/**
 	 * Here we just make a copy of the simulator.
 	 */
-	public Simulate copy() {
-		Simulate copy = new Simulate();
+	public Simulation copy() {
+		Simulation copy = new Simulation();
 		copy.position.setLocation(position);
 		copy.heading = heading;
 		copy.velocity = velocity;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2016 Robert Maupin (Chase)
+ * Copyright (c) 2012-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -37,6 +37,11 @@ public class GunFormula {
 	public double weight = 0.1;
 	public double guessfactor;
 
+	/**
+	 * Constructs this formula using a new gun wave and a state.
+	 * @param wave
+	 * @param state
+	 */
 	public GunFormula(GunWave wave, State state) {
 		final double bulletFlightTime = state.targetDistance / wave.speed;
 		point = new double[] {
@@ -52,6 +57,10 @@ public class GunFormula {
 			};
 	}
 
+	/**
+	 * Gets the calculated data.
+	 * @return array of the data
+	 */
 	public final double[] getArray() {
 		return point;
 	};

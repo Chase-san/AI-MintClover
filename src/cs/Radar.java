@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2016 Robert Maupin (Chase)
+ * Copyright (c) 2012-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -36,13 +36,13 @@ import cs.util.Vector;
 public class Radar {
 	private final Mint bot;
 	/**
-	 * Is this prior to the initial scan?
-	 */
-	private boolean isPreInitialScan;
-	/**
 	 * Is the robot performing it's initial scan?
 	 */
 	private boolean isInitalScan;
+	/**
+	 * Is this prior to the initial scan?
+	 */
+	private boolean isPreInitialScan;
 
 	public Radar(final Mint cntr) {
 		bot = cntr;

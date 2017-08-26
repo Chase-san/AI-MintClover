@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2013 Robert Maupin (Chase)
+ * Copyright (c) 2012-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,11 @@ package cs.gun;
 
 import cs.util.Wave;
 
+/**
+ * A simple extension of the wave that include gun targeting data.
+ * @author Chase
+ *
+ */
 @SuppressWarnings("serial")
 public class GunWave extends Wave {
 	public GunFormula data;
