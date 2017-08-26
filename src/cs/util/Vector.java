@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2013 Robert Maupin (Chase)
+ * Copyright (c) 2011-2017 Robert Maupin (Chase)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
