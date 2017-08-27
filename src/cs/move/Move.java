@@ -23,6 +23,7 @@
 package cs.move;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -158,7 +159,8 @@ public class Move {
 	 * Perform movement.
 	 */
 	private void doMovement() {
-		MoveWave wave = getBestWave(Collections.emptyList());
+		ArrayList<MoveWave> empty = new ArrayList<MoveWave>();
+		MoveWave wave = getBestWave(empty);
 
 		bot.g.setColor(Color.WHITE);
 		if (wave == null) {
