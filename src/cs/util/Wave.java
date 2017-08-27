@@ -45,9 +45,9 @@ public class Wave extends Vector {
 	protected boolean intersected = false;
 	protected boolean completed = false;
 
-	private NumberRange stateFactorRange = new NumberRange();
-	private boolean stateIntersected = false;
-	private boolean stateCompleted = false;
+	private NumberRange storedFactorRange = new NumberRange();
+	private boolean storedIntersected = false;
+	private boolean storedCompleted = false;
 
 	public void draw(Graphics2D g, long time) {
 		double radius = getRadius(time);
@@ -129,23 +129,22 @@ public class Wave extends Vector {
 	/** Resets the wave to it's initial value. */
 	public void resetState() {
 		factorRange.set(Byte.MAX_VALUE, Byte.MIN_VALUE);
-		
 		intersected = false;
 		completed = false;
 	}
 
 	/** Restores the previously backed up state. */
 	public void restoreState() {
-		factorRange.set(stateFactorRange);
-		intersected = stateIntersected;
-		completed = stateCompleted;
+		factorRange.set(storedFactorRange);
+		intersected = storedIntersected;
+		completed = storedCompleted;
 	}
 
 	/** Backs up the current state. */
 	public void storeState() {
-		stateFactorRange.set(factorRange);
-		stateIntersected = intersected;
-		stateCompleted = completed;
+		storedFactorRange.set(factorRange);
+		storedIntersected = intersected;
+		storedCompleted = completed;
 	}
 
 	/**

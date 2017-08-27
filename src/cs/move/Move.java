@@ -23,6 +23,7 @@
 package cs.move;
 
 import java.awt.Color;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,8 +60,8 @@ public class Move {
 	 */
 	public static boolean overrideSandbox = false;
 	
-	private static final KdTree.WeightedSqrEuclid<Double> targetBulletPowerTree;
-	private static final KdTree.WeightedSqrEuclid<MoveFormula> targetGuessFactorTree;
+	protected static final KdTree.WeightedSqrEuclid<Double> targetBulletPowerTree;
+	protected static final KdTree.WeightedSqrEuclid<MoveFormula> targetGuessFactorTree;
 	
 	
 	static {
@@ -76,9 +77,8 @@ public class Move {
 		targetBulletPowerTree.addPoint(tmp2.getArray(), tmp2.power);
 	}
 
-	private final Mint bot;
+	protected final Mint bot;
 	private LinkedList<Bullet> bullets = new LinkedList<Bullet>();
-
 	private State lastLastState;
 	private State lastState;
 	private Vector nextPosition = null;
@@ -90,143 +90,6 @@ public class Move {
 
 	public Move(final Mint cntr) {
 		bot = cntr;
-	}
-
-	/**
-	 * Calculate the risk of traveling in a given direction.
-	 * 
-	 * @param wave
-	 *            The wave to surf.
-	 * @param orbitDirection
-	 *            The direction to orbit.
-	 * @return the risk of moving in the given direction.
-	 */
-	private double calculateMovementRisk(final MoveWave wave, final int orbitDirection, final double maxVelocity) {
-		Simulation sim = new Simulation();
-		sim.position.setLocation(state.robotPosition);
-		sim.heading = state.robotBodyHeading;
-		sim.velocity = state.robotVelocity;
-		sim.maxVelocity = maxVelocity;
-
-		double startDistance = wave.distance(sim.position);
-		double predictedDistance = 0;
-		int intersectionTime = 0;
-
-		double risk = 0;
-
-		wave.storeState();
-		wave.resetState();
-		for (int timeOffset = 0; timeOffset < 110; ++timeOffset) {
-			wave.update(state.time + timeOffset, sim.position);
-			if (wave.isCompleted()) {
-				risk += calculateWaveRisk(wave, sim.position);
-				break;
-			} else if (wave.isIntersected()) {
-				predictedDistance += wave.distance(sim.position);
-				intersectionTime++;
-			}
-			// Update simulation
-			path.calculatePath(sim.position, wave, sim.heading, sim.velocity, orbitDirection);
-			sim.angleToTurn = path.getAngleToTurn();
-			sim.maxVelocity = path.getMaxVelocity();
-			sim.direction = path.getDirection();
-			sim.step();
-
-			bot.g.drawRect((int) sim.position.x - 2, (int) sim.position.y - 2, 4, 4);
-		}
-
-		wave.restoreState();
-
-		predictedDistance /= intersectionTime;
-		double distanceRisk = startDistance / predictedDistance;
-		distanceRisk *= distanceRisk;
-
-		return risk * distanceRisk;
-	}
-
-	/**
-	 * Add shadows for the given bullet to all existing waves. This is called when
-	 * we fire a new bullet.
-	 * 
-	 * @param b
-	 *            the bullet to calculate shadows for.
-	 */
-	private void updateShadowsForBullet(final Bullet b) {
-		for (final MoveWave wave : waves) {
-			if (wave.isHeatWave) {
-				continue;
-			}
-			wave.addShadowForBullet(state.robotPosition, b, state.time);
-		}
-	}
-
-	/**
-	 * Adds the shadows to the given wave for all fired bullets. This is
-	 * called when we detect a new wave.
-	 * 
-	 * @param wave
-	 *            the wave to calculate the shadows for.
-	 */
-	private void updateShadowsForWave(final MoveWave wave) {
-		if (wave.isHeatWave) {
-			return;
-		}
-		final Iterator<Bullet> it = bullets.iterator();
-		while (it.hasNext()) {
-			final Bullet b = it.next();
-			if (!b.isActive()) {
-				it.remove();
-				continue;
-			}
-			wave.addShadowForBullet(state.robotPosition, b, state.time);
-		}
-	}
-
-	/**
-	 * Calculate the risk of a given wave at the end position.
-	 * 
-	 * @param wave
-	 * @param lastPosition
-	 * @return
-	 */
-	private double calculateWaveRisk(final MoveWave wave, final Vector lastPosition) {
-		// check risk
-		double centerGF = wave.factorRange.getCenter();
-		double waveRisk = 0;
-
-		/* bullet shadows apply a weight to our danger prediction */
-		double shadowWeight = 1.0 - wave.calculateShadowCoverage();
-		if (shadowWeight <= 0.0001) {
-			return 0;
-		}
-
-		List<Entry<MoveFormula>> list = targetGuessFactorTree.nearestNeighbor(wave.formula.getArray(), 64, false);
-		for (final Entry<MoveFormula> e : list) {
-			double gf = e.value.guessfactor;
-
-			/*
-			 * 20% of the risk comes from how close the predicted factor is from the center
-			 * of our pass through the wave
-			 */
-			double risk = 0.2 / (1.0 + Math.abs(gf - centerGF));
-
-			/*
-			 * 80% of the risk comes directly if the predicted factor is on top our pass
-			 * through the wave
-			 */
-			if (wave.factorRange.getMinimum() < gf && wave.factorRange.getMaximum() > gf) {
-				risk += 0.8;
-			}
-
-			/*
-			 * the weight of the danger is based on how closely the predicted factor matches
-			 * our current state
-			 */
-			double weight = 1.0 / (1.0 + e.distance);
-
-			waveRisk += risk * shadowWeight * weight;
-		}
-		return waveRisk / list.size();
 	}
 
 	/**
@@ -295,7 +158,7 @@ public class Move {
 	 * Perform movement.
 	 */
 	private void doMovement() {
-		MoveWave wave = getBestWave();
+		MoveWave wave = getBestWave(Collections.emptyList());
 
 		bot.g.setColor(Color.WHITE);
 		if (wave == null) {
@@ -305,16 +168,19 @@ public class Move {
 		} else {
 			bot.g.drawString("Surfing", 4, 16);
 		}
-
-		// direction and risk
-		bot.g.setColor(Color.GREEN);
-		double forwardRisk = calculateMovementRisk(wave, state.robotOrbitDirection, Rules.MAX_VELOCITY);
 		
-		bot.g.setColor(Color.BLUE);
-		double stopRisk = calculateMovementRisk(wave, state.robotOrbitDirection, 0);
-
-		bot.g.setColor(Color.RED);
-		double reverseRisk = calculateMovementRisk(wave, -state.robotOrbitDirection, Rules.MAX_VELOCITY);
+		// direction and risk
+		MoveRisk moveRisk = new MoveRisk(this, state, wave);
+		
+		bot.g.setColor(new Color(0,1,0,0.5f));
+		double forwardRisk = moveRisk.copy().calculateRisk(state.robotOrbitDirection, Rules.MAX_VELOCITY);
+		
+		bot.g.setColor(new Color(0,0,1,0.5f));
+		double stopRisk = moveRisk.copy().calculateRisk(state.robotOrbitDirection, 0);
+		
+		bot.g.setColor(new Color(1,0,0,0.5f));
+		double reverseRisk = moveRisk.calculateRisk(-state.robotOrbitDirection, Rules.MAX_VELOCITY);
+		
 		
 		int targetOrbitDirection = state.robotOrbitDirection;
 		if (forwardRisk > reverseRisk) {
@@ -403,11 +269,18 @@ public class Move {
 
 	/**
 	 * Determine the best wave to surf.
+	 * @param exlude a list waves to exclude from search
+	 * @return the best wave to surf given current data
 	 */
-	private MoveWave getBestWave() {
+	protected MoveWave getBestWave(List<MoveWave> exclude) {
 		MoveWave wave = null;
 		double bestFitness = Double.NEGATIVE_INFINITY;
 		for (final MoveWave check : waves) {
+			// skip excluded waves
+			if(exclude.contains(check)) {
+				continue;
+			}
+			
 			final double eta = check.getETA(state.robotPosition, state.time);
 			final double fitness = check.power / eta;
 			if (fitness > bestFitness) {
@@ -630,6 +503,44 @@ public class Move {
 		sim.step();
 
 		nextPosition = sim.position;
+	}
+
+	/**
+	 * Add shadows for the given bullet to all existing waves. This is called when
+	 * we fire a new bullet.
+	 * 
+	 * @param b
+	 *            the bullet to calculate shadows for.
+	 */
+	private void updateShadowsForBullet(final Bullet b) {
+		for (final MoveWave wave : waves) {
+			if (wave.isHeatWave) {
+				continue;
+			}
+			wave.addShadowForBullet(state.robotPosition, b, state.time);
+		}
+	}
+
+	/**
+	 * Adds the shadows to the given wave for all fired bullets. This is
+	 * called when we detect a new wave.
+	 * 
+	 * @param wave
+	 *            the wave to calculate the shadows for.
+	 */
+	private void updateShadowsForWave(final MoveWave wave) {
+		if (wave.isHeatWave) {
+			return;
+		}
+		final Iterator<Bullet> it = bullets.iterator();
+		while (it.hasNext()) {
+			final Bullet b = it.next();
+			if (!b.isActive()) {
+				it.remove();
+				continue;
+			}
+			wave.addShadowForBullet(state.robotPosition, b, state.time);
+		}
 	}
 
 	/**
